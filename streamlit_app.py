@@ -14,23 +14,62 @@ from reportlab.pdfgen import canvas
 
 st.set_page_config(page_title="AI-Center ROI Calculator", page_icon="👁️", layout="wide", initial_sidebar_state="expanded")
 
-# ---------- CSS ----------
+# ---------- CSS (White text version) ----------
 st.markdown("""
 <style>
-    .stApp { background-color: #0a0a0a; color: #f5f5f5; }
-    .big-number { font-size: 2.8rem; font-weight: 700; color: #d4af37; line-height: 1.1; margin: 0.2rem 0; }
-    .label { font-size: 0.8rem; color: #a3a3a3; text-transform: uppercase; letter-spacing: 0.06em; }
-    .metric-card {
-        background: #141414; border: 1px solid #2a2a2a;
-        border-radius: 12px; padding: 1.1rem 0.8rem; text-align: center; height: 100%;
+    .stApp { background-color: #0a0a0a; color: #ffffff; }
+
+    .big-number { 
+        font-size: 2.8rem; 
+        font-weight: 700; 
+        color: #d4af37; 
+        line-height: 1.1; 
+        margin: 0.2rem 0; 
     }
+
+    .label { 
+        font-size: 0.8rem; 
+        color: #ffffff !important; 
+        text-transform: uppercase; 
+        letter-spacing: 0.06em; 
+    }
+
+    .metric-card {
+        background: #141414; 
+        border: 1px solid #2a2a2a;
+        border-radius: 12px; 
+        padding: 1.1rem 0.8rem; 
+        text-align: center; 
+        height: 100%;
+    }
+
     .header-box {
         background: linear-gradient(90deg, #111, #1a1a1a);
-        border: 1px solid #333; border-radius: 12px;
-        padding: 1rem 1.5rem; margin-bottom: 1rem;
+        border: 1px solid #333; 
+        border-radius: 12px;
+        padding: 1rem 1.5rem; 
+        margin-bottom: 1rem;
     }
-    h1, h2, h3, h4 { color: #f5f5f5 !important; }
 
+    h1, h2, h3, h4 { color: #ffffff !important; }
+
+    /* Force Streamlit metric labels and values to white */
+    [data-testid="stMetricLabel"] {
+        color: #ffffff !important;
+    }
+    [data-testid="stMetricValue"] {
+        color: #ffffff !important;
+    }
+    [data-testid="stMetricDelta"] {
+        color: #ffffff !important;
+    }
+
+    /* Caption / disclaimer */
+    .stCaption, .stMarkdown p {
+        color: #e5e5e5 !important;
+    }
+
+    /* Download button */
     .stDownloadButton > button {
         background-color: #e5e5e5 !important;
         color: #111111 !important;
@@ -51,9 +90,9 @@ st.markdown("""
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
         <div>
             <h2 style="margin:0; color:#d4af37 !important;">AI-Center ROI Calculator</h2>
-            <div style="color:#a3a3a3; font-size:0.9rem;">Confidential – For Internal Discussion</div>
+            <div style="color:#ffffff; font-size:0.9rem;">Confidential – For Internal Discussion</div>
         </div>
-        <div style="color:#737373; font-size:0.8rem; text-align:right;">
+        <div style="color:#cccccc; font-size:0.8rem; text-align:right;">
             Scenario Modeling Tool<br>Not for patient or public use
         </div>
     </div>
@@ -135,7 +174,7 @@ with left:
     <div style="text-align:center; padding: 1rem 0;">
         <div class="label">Estimated Profit over {term_months}-Month Term</div>
         <div class="big-number">${profit_term:,.0f}</div>
-        <div style="color:#a3a3a3; font-size:0.85rem; margin-top:0.3rem;">
+        <div style="color:#ffffff; font-size:0.85rem; margin-top:0.3rem;">
             {purchase_type} · {capture}% capture · ${price}/patient
         </div>
     </div>
@@ -146,7 +185,7 @@ with right:
     with m1:
         st.markdown(f'<div class="metric-card"><div class="label">Net Profit / Month</div><div style="font-size:1.7rem;font-weight:600;color:#d4af37">${net:,.0f}</div></div>', unsafe_allow_html=True)
     with m2:
-        st.markdown(f'<div class="metric-card"><div class="label">Payback Period</div><div style="font-size:1.7rem;font-weight:600">{payback:.1f} mo</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card"><div class="label">Payback Period</div><div style="font-size:1.7rem;font-weight:600;color:#ffffff">{payback:.1f} mo</div></div>', unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 c1, c2, c3, c4 = st.columns(4)
@@ -167,6 +206,9 @@ with st.expander("Assumptions & Notes"):
 
 **Net Profit** = Gross revenue − Lease payment − BioAge − Maintenance − Other monthly costs.  
 **Not included**: training, marketing, chair-time opportunity cost, downstream referral revenue.
+
+**Setup / Install / Tax** is a residual placeholder (originally $28,175 total investment − $22,000 device = $6,175).  
+Edit it to match actual installation, freight, and tax for each deal.
     """)
 
 # ==================== PDF ====================
