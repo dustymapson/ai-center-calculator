@@ -14,22 +14,35 @@ from reportlab.pdfgen import canvas
 
 st.set_page_config(page_title="AI-Center ROI Calculator", page_icon="👁️", layout="wide", initial_sidebar_state="expanded")
 
-# ---------- CSS ----------
+# ---------- CSS (Black / Gold / White) ----------
 st.markdown("""
 <style>
-    .stApp { background-color: #0b1220; color: #e2e8f0; }
-    .big-number { font-size: 2.8rem; font-weight: 700; color: #22d3ee; line-height: 1.1; margin: 0.2rem 0; }
-    .label { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
+    .stApp { background-color: #0a0a0a; color: #f5f5f5; }
+    .big-number { font-size: 2.8rem; font-weight: 700; color: #d4af37; line-height: 1.1; margin: 0.2rem 0; }
+    .label { font-size: 0.8rem; color: #a3a3a3; text-transform: uppercase; letter-spacing: 0.06em; }
     .metric-card {
-        background: #111827; border: 1px solid #1e293b;
+        background: #141414; border: 1px solid #2a2a2a;
         border-radius: 12px; padding: 1.1rem 0.8rem; text-align: center; height: 100%;
     }
     .header-box {
-        background: linear-gradient(90deg, #0f172a, #1e293b);
-        border: 1px solid #334155; border-radius: 12px;
+        background: linear-gradient(90deg, #111, #1a1a1a);
+        border: 1px solid #333; border-radius: 12px;
         padding: 1rem 1.5rem; margin-bottom: 1rem;
     }
-    h1, h2, h3, h4 { color: #f1f5f9 !important; }
+    h1, h2, h3, h4 { color: #f5f5f5 !important; }
+
+    /* Download button - black text on light background */
+    .stDownloadButton > button {
+        background-color: #e5e5e5 !important;
+        color: #111111 !important;
+        font-weight: 600 !important;
+        border: none !important;
+        border-radius: 8px !important;
+    }
+    .stDownloadButton > button:hover {
+        background-color: #d4af37 !important;
+        color: #111111 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -38,10 +51,10 @@ st.markdown("""
 <div class="header-box">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
         <div>
-            <h2 style="margin:0; color:#22d3ee !important;">AI-Center ROI Calculator</h2>
-            <div style="color:#94a3b8; font-size:0.9rem;">Topcon Healthcare  ·  Confidential – For Internal Discussion</div>
+            <h2 style="margin:0; color:#d4af37 !important;">AI-Center ROI Calculator</h2>
+            <div style="color:#a3a3a3; font-size:0.9rem;">Confidential – For Internal Discussion</div>
         </div>
-        <div style="color:#64748b; font-size:0.8rem; text-align:right;">
+        <div style="color:#737373; font-size:0.8rem; text-align:right;">
             Scenario Modeling Tool<br>Not for patient or public use
         </div>
     </div>
@@ -86,7 +99,7 @@ bioage = st.sidebar.number_input("BioAge Subscription ($)", min_value=0, value=s
 maint = st.sidebar.number_input("Maintenance ($)", min_value=0, value=st.session_state.maint, step=5, key="maint")
 other_monthly = st.sidebar.number_input("Other (staff / consumables) ($)", min_value=0, value=st.session_state.other_monthly, step=10, key="other_monthly")
 
-# ---------- CURRENT SCENARIO CALC ----------
+# ---------- CALCULATIONS ----------
 total_investment = device_cost + setup_cost
 if purchase_type == "Lease" and interest_rate > 0 and lease_months > 0:
     r = (interest_rate / 100) / 12
@@ -117,7 +130,7 @@ with left:
     <div style="text-align:center; padding: 1rem 0;">
         <div class="label">Estimated Profit over {term_months}-Month Term</div>
         <div class="big-number">${profit_term:,.0f}</div>
-        <div style="color:#64748b; font-size:0.85rem; margin-top:0.3rem;">
+        <div style="color:#a3a3a3; font-size:0.85rem; margin-top:0.3rem;">
             {purchase_type}  ·  {capture}% capture  ·  ${price}/patient
         </div>
     </div>
@@ -125,7 +138,7 @@ with left:
 with right:
     m1, m2 = st.columns(2)
     with m1:
-        st.markdown(f'<div class="metric-card"><div class="label">Net Profit / Month</div><div style="font-size:1.7rem;font-weight:600;color:#22d3ee">${net:,.0f}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card"><div class="label">Net Profit / Month</div><div style="font-size:1.7rem;font-weight:600;color:#d4af37">${net:,.0f}</div></div>', unsafe_allow_html=True)
     with m2:
         st.markdown(f'<div class="metric-card"><div class="label">Payback Period</div><div style="font-size:1.7rem;font-weight:600">{payback:.1f} mo</div></div>', unsafe_allow_html=True)
 
@@ -150,55 +163,48 @@ with st.expander("Assumptions & Notes"):
 **Not included**: training, marketing, chair-time opportunity cost, downstream referral revenue.
     """)
 
-# ==================== PDF GENERATION ====================
-def draw_tron_background(canvas, doc):
+# ==================== PDF (Black / Gold / White) ====================
+def draw_bg(canvas, doc):
     page_w, page_h = letter
-    canvas.setFillColor(colors.HexColor("#05080f"))
+    canvas.setFillColor(colors.HexColor("#0a0a0a"))
     canvas.rect(0, 0, page_w, page_h, fill=1, stroke=0)
-    # subtle grid
-    canvas.setStrokeColor(colors.HexColor("#0a1a2f"))
-    canvas.setLineWidth(0.3)
-    for x in range(0, int(page_w), 28):
-        canvas.line(x, 0, x, page_h)
-    for y in range(0, int(page_h), 28):
-        canvas.line(0, y, page_w, y)
-    # neon lines
-    canvas.setStrokeColor(colors.HexColor("#00f0ff"))
-    canvas.setLineWidth(1.8)
-    canvas.line(40, page_h - 32, page_w - 40, page_h - 32)
-    canvas.line(40, 38, page_w - 40, 38)
+    # gold accent lines
+    canvas.setStrokeColor(colors.HexColor("#d4af37"))
+    canvas.setLineWidth(1.5)
+    canvas.line(40, page_h - 30, page_w - 40, page_h - 30)
+    canvas.line(40, 36, page_w - 40, 36)
 
 def create_combined_pdf():
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
                             rightMargin=0.5*inch, leftMargin=0.5*inch,
-                            topMargin=0.6*inch, bottomMargin=0.55*inch)
+                            topMargin=0.6*inch, bottomMargin=0.5*inch)
 
-    CYAN = colors.HexColor("#00f0ff")
-    CYAN_DIM = colors.HexColor("#00b8d4")
-    WHITE = colors.HexColor("#e0f7fa")
-    GRAY = colors.HexColor("#78909c")
-    DARK = colors.HexColor("#0a1628")
+    GOLD = colors.HexColor("#d4af37")
+    GOLD_DIM = colors.HexColor("#b8962e")
+    WHITE = colors.HexColor("#f5f5f5")
+    GRAY = colors.HexColor("#a3a3a3")
+    DARK = colors.HexColor("#141414")
+    BLACK = colors.HexColor("#0a0a0a")
 
-    title_style = ParagraphStyle('Title', fontName='Helvetica-Bold', fontSize=18, textColor=CYAN, spaceAfter=2)
-    subtitle_style = ParagraphStyle('Sub', fontName='Helvetica', fontSize=8, textColor=GRAY, spaceAfter=8)
-    section_style = ParagraphStyle('Sec', fontName='Helvetica-Bold', fontSize=10, textColor=CYAN, spaceBefore=8, spaceAfter=4)
+    title_style = ParagraphStyle('Title', fontName='Helvetica-Bold', fontSize=18, textColor=GOLD, spaceAfter=4, leading=22)
+    subtitle_style = ParagraphStyle('Sub', fontName='Helvetica', fontSize=8, textColor=GRAY, spaceAfter=10, spaceBefore=2)
+    section_style = ParagraphStyle('Sec', fontName='Helvetica-Bold', fontSize=10, textColor=GOLD, spaceBefore=8, spaceAfter=4)
     label_style = ParagraphStyle('Lab', fontName='Helvetica', fontSize=8, textColor=GRAY, alignment=TA_CENTER)
-    big_style = ParagraphStyle('Big', fontName='Helvetica-Bold', fontSize=24, textColor=CYAN, alignment=TA_CENTER, spaceBefore=2, spaceAfter=2)
+    big_style = ParagraphStyle('Big', fontName='Helvetica-Bold', fontSize=24, textColor=GOLD, alignment=TA_CENTER, spaceBefore=4, spaceAfter=4)
     footer_style = ParagraphStyle('Foot', fontName='Helvetica', fontSize=7, textColor=GRAY, alignment=TA_CENTER)
-    normal = ParagraphStyle('Norm', fontName='Helvetica', fontSize=8, textColor=WHITE)
 
     story = []
 
     # ========== PAGE 1: SUMMARY ==========
     story.append(Paragraph("AI-CENTER  //  ROI SUMMARY", title_style))
-    story.append(Paragraph(f"TOPCON HEALTHCARE  ·  {datetime.now().strftime('%Y.%m.%d %H:%M').upper()}  ·  CONFIDENTIAL", subtitle_style))
+    story.append(Paragraph(f"GENERATED {datetime.now().strftime('%Y.%m.%d  %H:%M').upper()}  ·  CONFIDENTIAL", subtitle_style))
     story.append(Spacer(1, 6))
     story.append(Paragraph(f"PROFIT OVER {term_months}-MONTH TERM", label_style))
     story.append(Paragraph(f"${profit_term:,.0f}", big_style))
-    story.append(Paragraph(f"{purchase_type.upper()}  ·  {capture}% CAPTURE  ·  ${price}/PATIENT", 
+    story.append(Paragraph(f"{purchase_type.upper()}  ·  {capture}% CAPTURE  ·  ${price}/PATIENT",
                            ParagraphStyle('S', parent=label_style, fontSize=8, spaceAfter=10)))
-    story.append(HRFlowable(width="100%", thickness=1.2, color=CYAN, spaceAfter=10))
+    story.append(HRFlowable(width="100%", thickness=1.2, color=GOLD, spaceAfter=10))
 
     data = [
         ["NET PROFIT / MO", f"${net:,.0f}", "PAYBACK", f"{payback:.1f} MO"],
@@ -210,11 +216,11 @@ def create_combined_pdf():
     t.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), DARK),
         ('TEXTCOLOR', (0,0), (0,-1), GRAY), ('TEXTCOLOR', (2,0), (2,-1), GRAY),
-        ('TEXTCOLOR', (1,0), (1,-1), CYAN), ('TEXTCOLOR', (3,0), (3,-1), CYAN),
+        ('TEXTCOLOR', (1,0), (1,-1), GOLD), ('TEXTCOLOR', (3,0), (3,-1), GOLD),
         ('FONTNAME', (1,0), (1,-1), 'Helvetica-Bold'), ('FONTNAME', (3,0), (3,-1), 'Helvetica-Bold'),
         ('FONTSIZE', (0,0), (-1,-1), 8.5),
         ('ALIGN', (1,0), (1,-1), 'RIGHT'), ('ALIGN', (3,0), (3,-1), 'RIGHT'),
-        ('GRID', (0,0), (-1,-1), 0.6, CYAN),
+        ('GRID', (0,0), (-1,-1), 0.6, GOLD),
         ('TOPPADDING', (0,0), (-1,-1), 6), ('BOTTOMPADDING', (0,0), (-1,-1), 6),
         ('LEFTPADDING', (0,0), (-1,-1), 7),
     ]))
@@ -238,13 +244,13 @@ def create_combined_pdf():
         ('FONTNAME', (1,0), (1,-1), 'Helvetica-Bold'), ('FONTNAME', (3,0), (3,-1), 'Helvetica-Bold'),
         ('FONTSIZE', (0,0), (-1,-1), 8),
         ('ALIGN', (1,0), (1,-1), 'RIGHT'), ('ALIGN', (3,0), (3,-1), 'RIGHT'),
-        ('GRID', (0,0), (-1,-1), 0.5, CYAN_DIM),
+        ('GRID', (0,0), (-1,-1), 0.5, GOLD_DIM),
         ('TOPPADDING', (0,0), (-1,-1), 4), ('BOTTOMPADDING', (0,0), (-1,-1), 4),
         ('LEFTPADDING', (0,0), (-1,-1), 6),
     ]))
     story.append(t2)
     story.append(Spacer(1, 16))
-    story.append(Paragraph("CONFIDENTIAL // FOR INTERNAL DISCUSSION ONLY // TOPCON HEALTHCARE // AI-CENTER", footer_style))
+    story.append(Paragraph("CONFIDENTIAL  ·  FOR INTERNAL DISCUSSION ONLY  ·  AI-CENTER", footer_style))
 
     # ========== PAGE 2: FULL PRO FORMA ==========
     story.append(PageBreak())
@@ -254,9 +260,8 @@ def create_combined_pdf():
         f"DEVICE ${device_cost:,.0f} + SETUP ${setup_cost:,.0f}  ·  {interest_rate}%  ·  {term_months} MO  ·  BIOAGE ${bioage} + MAINT ${maint}",
         subtitle_style
     ))
-    story.append(HRFlowable(width="100%", thickness=1.2, color=CYAN, spaceAfter=8))
+    story.append(HRFlowable(width="100%", thickness=1.2, color=GOLD, spaceAfter=8))
 
-    # Helper to calculate one scenario
     def calc_row(vol, cap, pr):
         capt = vol * (cap / 100)
         gr = capt * pr
@@ -268,10 +273,8 @@ def create_combined_pdf():
             over = (nt * term_months) - total_investment
         else:
             pb, y1, y2, over = 999, 0, 0, -total_investment
-        return [
-            str(vol), f"{capt:.0f}", f"${gr:,.0f}", f"${nt:,.0f}",
-            f"{pb:.1f}", f"${y1:,.0f}" if y1 > 0 else "—", f"${y2:,.0f}", f"${over:,.0f}"
-        ]
+        return [str(vol), f"{capt:.0f}", f"${gr:,.0f}", f"${nt:,.0f}",
+                f"{pb:.1f}", f"${y1:,.0f}" if y1 > 0 else "—", f"${y2:,.0f}", f"${over:,.0f}"]
 
     headers = ["Pts/mo", "Captured", "Gross", "Net/mo", "Payback", "Profit Y1", "Profit Y2", "Over Term"]
 
@@ -279,44 +282,41 @@ def create_combined_pdf():
         story.append(Paragraph(label, section_style))
         rows = [headers]
         for cap_rate, cap_name in [(35, "Very Conservative (35%)"), (65, "Standard (65%)"), (75, "Best Case (75%)")]:
-            # Add a scenario label row
             rows.append([cap_name, "", "", "", "", "", "", ""])
             for vol in [200, 300, 400]:
                 rows.append(calc_row(vol, cap_rate, price_point))
 
         col_w = [0.7*inch, 0.75*inch, 0.85*inch, 0.85*inch, 0.75*inch, 0.9*inch, 0.9*inch, 1.0*inch]
         t = Table(rows, colWidths=col_w)
-        style_commands = [
-            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#00b8d4")),
-            ('TEXTCOLOR', (0,0), (-1,0), colors.HexColor("#05080f")),
+        style_cmds = [
+            ('BACKGROUND', (0,0), (-1,0), GOLD),
+            ('TEXTCOLOR', (0,0), (-1,0), BLACK),
             ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
             ('FONTSIZE', (0,0), (-1,-1), 7),
             ('ALIGN', (0,0), (-1,-1), 'CENTER'),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-            ('GRID', (0,0), (-1,-1), 0.4, CYAN_DIM),
+            ('GRID', (0,0), (-1,-1), 0.4, GOLD_DIM),
             ('TOPPADDING', (0,0), (-1,-1), 3),
             ('BOTTOMPADDING', (0,0), (-1,-1), 3),
             ('BACKGROUND', (0,1), (-1,-1), DARK),
             ('TEXTCOLOR', (0,1), (-1,-1), WHITE),
         ]
-        # Highlight scenario label rows
         for i, row in enumerate(rows):
             if "Conservative" in str(row[0]) or "Standard" in str(row[0]) or "Best Case" in str(row[0]):
-                style_commands.append(('BACKGROUND', (0,i), (-1,i), colors.HexColor("#0d2137")))
-                style_commands.append(('TEXTCOLOR', (0,i), (-1,i), CYAN))
-                style_commands.append(('FONTNAME', (0,i), (-1,i), 'Helvetica-Bold'))
-                style_commands.append(('SPAN', (0,i), (-1,i)))
-        t.setStyle(TableStyle(style_commands))
+                style_cmds += [
+                    ('BACKGROUND', (0,i), (-1,i), colors.HexColor("#1f1a0f")),
+                    ('TEXTCOLOR', (0,i), (-1,i), GOLD),
+                    ('FONTNAME', (0,i), (-1,i), 'Helvetica-Bold'),
+                    ('SPAN', (0,i), (-1,i)),
+                ]
+        t.setStyle(TableStyle(style_cmds))
         story.append(t)
         story.append(Spacer(1, 6))
 
     story.append(Spacer(1, 8))
-    story.append(Paragraph(
-        "CONFIDENTIAL // FOR INTERNAL DISCUSSION ONLY // TOPCON HEALTHCARE // AI-CENTER  ·  RESULTS ARE ESTIMATES ONLY",
-        footer_style
-    ))
+    story.append(Paragraph("CONFIDENTIAL  ·  FOR INTERNAL DISCUSSION ONLY  ·  AI-CENTER  ·  RESULTS ARE ESTIMATES ONLY", footer_style))
 
-    doc.build(story, onFirstPage=draw_tron_background, onLaterPages=draw_tron_background)
+    doc.build(story, onFirstPage=draw_bg, onLaterPages=draw_bg)
     buffer.seek(0)
     return buffer
 
@@ -331,4 +331,4 @@ st.download_button(
 )
 
 st.markdown("---")
-st.caption("AI-Center ROI Calculator  ·  Topcon Healthcare  ·  For internal use only  ·  Results are estimates and do not constitute financial advice")
+st.caption("AI-Center ROI Calculator  ·  Confidential – For internal use only  ·  Results are estimates and do not constitute financial advice")
