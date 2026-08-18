@@ -14,7 +14,7 @@ from reportlab.pdfgen import canvas
 
 st.set_page_config(page_title="AI-Center ROI Calculator", page_icon="👁️", layout="wide", initial_sidebar_state="expanded")
 
-# ---------- CSS (White text version) ----------
+# ---------- CSS ----------
 st.markdown("""
 <style>
     .stApp { background-color: #0a0a0a; color: #ffffff; }
@@ -69,6 +69,16 @@ st.markdown("""
         color: #e5e5e5 !important;
     }
 
+    /* Sidebar headlines and labels → BLACK */
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] .stMarkdown p,
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] .stRadio label {
+        color: #111111 !important;
+    }
+
     /* Download button */
     .stDownloadButton > button {
         background-color: #e5e5e5 !important;
@@ -101,13 +111,26 @@ st.markdown("""
 
 # ---------- SIDEBAR ----------
 st.sidebar.markdown("### Scenario Presets")
-c1, c2, c3 = st.sidebar.columns(3)
-if c1.button("Conservative", use_container_width=True):
-    st.session_state.volume, st.session_state.capture, st.session_state.price = 200, 35, 29
-if c2.button("Base", use_container_width=True):
-    st.session_state.volume, st.session_state.capture, st.session_state.price = 300, 65, 39
-if c3.button("Aggressive", use_container_width=True):
-    st.session_state.volume, st.session_state.capture, st.session_state.price = 400, 75, 49
+
+preset = st.sidebar.radio(
+    "Select Scenario",
+    ["Conservative", "Base", "Aggressive"],
+    index=1,
+    label_visibility="collapsed"
+)
+
+if preset == "Conservative":
+    st.session_state.volume = 200
+    st.session_state.capture = 35
+    st.session_state.price = 29
+elif preset == "Base":
+    st.session_state.volume = 300
+    st.session_state.capture = 65
+    st.session_state.price = 39
+elif preset == "Aggressive":
+    st.session_state.volume = 400
+    st.session_state.capture = 75
+    st.session_state.price = 49
 
 defaults = {
     "volume": 300, "capture": 65, "price": 39,
