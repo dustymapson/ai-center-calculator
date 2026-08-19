@@ -73,6 +73,15 @@ st.markdown("""
         height: 100%;
     }
 
+    .metric-card-secondary {
+        background: #0f0f0f; 
+        border: 1px dashed #3a3a3a;
+        border-radius: 10px; 
+        padding: 0.7rem 0.65rem; 
+        text-align: center; 
+        height: 100%;
+    }
+
     .metric-value {
         font-size: 1.35rem;
         font-weight: 600;
@@ -84,6 +93,13 @@ st.markdown("""
         font-size: 1.35rem;
         font-weight: 600;
         color: #d4af37;
+        margin-top: 0.1rem;
+    }
+
+    .metric-value-muted {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #aaaaaa;
         margin-top: 0.1rem;
     }
 
@@ -195,7 +211,8 @@ defaults = {
     "volume": 300, "capture": 65, "price": 39,
     "device_cost": 22000, "setup_cost": 6175,
     "interest_rate": 8.0, "lease_months": 60,
-    "bioage": 399, "maint": 20, "other_monthly": 0
+    "bioage": 399, "maint": 20, "other_monthly": 0,
+    "tax_rate": 25.0
 }
 for k, v in defaults.items():
     if k not in st.session_state:
@@ -208,13 +225,13 @@ capture = st.sidebar.slider("Capture Rate (%)", 10, 95, st.session_state.capture
 price = st.sidebar.slider("Price per Patient ($)", 15, 70, st.session_state.price, 1, key="price")
 
 st.sidebar.markdown("### Device & Finance")
-purchase_type = st.sidebar.radio("Purchase Type", ["Lease", "Cash Purchase"], horizontal=True)
+purchase_type = st.sidebar.radio("Purchase Type", ["Cash", "Financed"], horizontal=True)
 device_cost = st.sidebar.number_input("Device Cost ($)", min_value=0, value=st.session_state.device_cost, step=500, key="device_cost")
 setup_cost = st.sidebar.number_input("Setup / Install / Tax ($)", min_value=0, value=st.session_state.setup_cost, step=100, key="setup_cost")
 
-if purchase_type == "Lease":
+if purchase_type == "Financed":
     interest_rate = st.sidebar.slider("Annual Interest Rate (%)", 0.0, 15.0, st.session_state.interest_rate, 0.25, key="interest_rate")
-    lease_months = st.sidebar.slider("Lease Term (months)", 12, 84, st.session_state.lease_months, 6, key="lease_months")
+    lease_months = st.sidebar.slider("Finance Term (months)", 12, 84, st.session_state.lease_months, 6, key="lease_months")
 else:
     interest_rate = 0.0
     lease_months = 60
@@ -224,30 +241,44 @@ bioage = st.sidebar.number_input("BioAge Subscription ($)", min_value=0, value=s
 maint = st.sidebar.number_input("Maintenance ($)", min_value=0, value=st.session_state.maint, step=5, key="maint")
 other_monthly = st.sidebar.number_input("Other (staff / consumables) ($)", min_value=0, value=st.session_state.other_monthly, step=10, key="other_monthly")
 
+st.sidebar.markdown("### Tax Estimate (Section 179)")
+tax_rate = st.sidebar.slider("Assumed Effective Tax Rate (%)", 0.0, 40.0, st.session_state.tax_rate, 1.0, key="tax_rate")
+
 # ---------- CALCULATIONS ----------
 total_investment = device_cost + setup_cost
-if purchase_type == "Lease" and interest_rate > 0 and lease_months > 0:
+
+if purchase_type == "Financed" and interest_rate > 0 and lease_months > 0:
     r = (interest_rate / 100) / 12
     payment = total_investment * (r * (1 + r)**lease_months) / ((1 + r)**lease_months - 1)
 else:
-    payment = 0 if purchase_type == "Cash Purchase" else (total_investment / lease_months if lease_months else 0)
+    payment = 0
 
 monthly_cost = payment + bioage + maint + other_monthly
 captured = volume * (capture / 100)
 gross = captured * price
 net = gross - monthly_cost
-term_months = lease_months if purchase_type == "Lease" else 60
+term_months = lease_months if purchase_type == "Financed" else 60
+
+# Corrected Year 1 / Year 2 logic
+if purchase_type == "Cash":
+    # Cash: subtract the full outlay in Year 1 only
+    profit_y1 = (net * 12) - total_investment
+    profit_y2 = net * 12
+else:
+    # Financed: monthly payment already in net — do NOT subtract total investment again
+    profit_y1 = net * 12
+    profit_y2 = net * 12
 
 if net > 0:
     payback = total_investment / net
-    profit_y1 = net * max(0, 12 - payback) if payback < 12 else 0
-    profit_y2 = net * 12
-    profit_term = (net * term_months) - total_investment
+    profit_term = (net * term_months) - total_investment if purchase_type == "Cash" else (net * term_months)
 else:
     payback = 999
-    profit_y1 = 0
-    profit_y2 = 0
-    profit_term = -total_investment
+    profit_term = -total_investment if purchase_type == "Cash" else 0
+
+# Section 179 estimate (applies to both Cash and Financed — buyer owns the equipment)
+section_179_savings = device_cost * (tax_rate / 100)
+profit_y1_with_179 = profit_y1 + section_179_savings
 
 # ---------- DISPLAY ----------
 
@@ -261,10 +292,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ===== RETURN (now includes Year 1 & Year 2) =====
+# ===== RETURN =====
 st.markdown('<div class="section-header">Return</div>', unsafe_allow_html=True)
 
-# Row 1: Hero + Net + Payback
 r1, r2, r3 = st.columns([1.4, 1, 1])
 with r1:
     st.markdown(f"""
@@ -288,7 +318,6 @@ with r3:
     </div>
     """, unsafe_allow_html=True)
 
-# Row 2: Year 1 + Year 2 (now inside Return)
 st.markdown("<div style='height:0.35rem'></div>", unsafe_allow_html=True)
 y1, y2 = st.columns(2)
 with y1:
@@ -303,6 +332,26 @@ with y2:
     <div class="metric-card">
         <div class="label">Profit – Year 2</div>
         <div class="metric-value">${profit_y2:,.0f}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# Section 179 secondary view
+st.markdown("<div style='height:0.35rem'></div>", unsafe_allow_html=True)
+s1, s2 = st.columns(2)
+with s1:
+    st.markdown(f"""
+    <div class="metric-card-secondary">
+        <div class="label">Est. Section 179 Tax Savings</div>
+        <div class="metric-value-muted">${section_179_savings:,.0f}</div>
+        <div style="font-size:0.65rem; color:#777; margin-top:0.2rem;">Not included in Year 1 above</div>
+    </div>
+    """, unsafe_allow_html=True)
+with s2:
+    st.markdown(f"""
+    <div class="metric-card-secondary">
+        <div class="label">Year 1 + Est. Section 179</div>
+        <div class="metric-value-muted">${profit_y1_with_179:,.0f}</div>
+        <div style="font-size:0.65rem; color:#777; margin-top:0.2rem;">Estimate only · not tax advice</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -325,10 +374,9 @@ with v2:
     </div>
     """, unsafe_allow_html=True)
 
-# ===== INVESTMENT & COST (split into Upfront vs Recurring) =====
+# ===== INVESTMENT & COST =====
 st.markdown('<div class="section-header">Investment & Cost</div>', unsafe_allow_html=True)
 
-# Upfront subgroup
 st.markdown('<div class="sub-label">Upfront</div>', unsafe_allow_html=True)
 u1, u2 = st.columns(2)
 with u1:
@@ -346,14 +394,13 @@ with u2:
     </div>
     """, unsafe_allow_html=True)
 
-# Recurring subgroup
 st.markdown('<div class="sub-label">Recurring (Monthly)</div>', unsafe_allow_html=True)
 m1, m2 = st.columns(2)
 with m1:
     st.markdown(f"""
     <div class="metric-card">
-        <div class="label">Monthly Lease Payment</div>
-        <div class="metric-value">{"$" + f"{payment:,.2f}" if purchase_type == "Lease" else "—"}</div>
+        <div class="label">Monthly Finance Payment</div>
+        <div class="metric-value">{"$" + f"{payment:,.2f}" if purchase_type == "Financed" else "—"}</div>
     </div>
     """, unsafe_allow_html=True)
 with m2:
@@ -367,14 +414,22 @@ with m2:
 st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
 
 with st.expander("Assumptions & Notes"):
-    st.markdown("""
+    st.markdown(f"""
 **Capture Rate Guidance**  
 - 35% = Very Conservative | 65% = Typical / Base | 75%+ = Strong trust + optimized workflow  
 
-**Net Profit** = Gross revenue − Lease payment − BioAge − Maintenance − Other monthly costs.  
+**Net Profit** = Gross revenue − Finance payment − BioAge − Maintenance − Other monthly costs.  
 
-**Setup / Install / Tax** is a residual placeholder (originally $28,175 − $22,000 device = $6,175).  
-Edit it for each deal.
+**Profit – Year 1 logic**  
+- **Cash**: (Net × 12) − Total Investment (full outlay occurs in Year 1)  
+- **Financed**: Net × 12 (monthly payment already deducted; no second subtraction of device cost)
+
+**Section 179**  
+Cash and Financed purchases may qualify for Section 179 depreciation, allowing the buyer to deduct the full equipment cost in the year it is placed in service (subject to IRS annual limits).  
+Estimated tax savings shown above use your assumed effective tax rate of **{tax_rate:.0f}%** × Device Cost.  
+This is a **tax benefit estimate only**, separate from the cash-flow profit figures, and depends on the buyer’s specific tax situation. It does **not** constitute tax advice.
+
+**Setup / Install / Tax** is a residual placeholder. Edit it for each deal.
     """)
 
 # ==================== PDF ====================
@@ -411,7 +466,6 @@ def create_combined_pdf():
 
     story = []
 
-    # PAGE 1 - SUMMARY
     story.append(Paragraph("AI-CENTER  //  ROI SUMMARY", title_style))
     story.append(Paragraph(f"GENERATED {datetime.now().strftime('%Y.%m.%d  %H:%M').upper()}  ·  CONFIDENTIAL", subtitle_style))
     
@@ -444,14 +498,13 @@ def create_combined_pdf():
     story.append(t)
     story.append(Spacer(1, 12))
 
-    # Monthly Cost Breakdown
     story.append(Paragraph("MONTHLY COST BREAKDOWN", section_style))
 
-    nw500_label = "NW500 Lease / Finance" if purchase_type == "Lease" and payment > 0 else "NW500 Finance"
-    nw500_value = f"${payment:,.2f}" if payment > 0 else "$0.00 (Cash / No Device)"
+    finance_label = "Finance Payment" if purchase_type == "Financed" and payment > 0 else "Finance Payment"
+    finance_value = f"${payment:,.2f}" if payment > 0 else "$0.00 (Cash)"
 
     cost_data = [
-        [nw500_label, nw500_value],
+        [finance_label, finance_value],
         ["BioAge Subscription", f"${bioage:,.2f}"],
         ["Maintenance", f"${maint:,.2f}"],
         ["Other (staff / consumables)", f"${other_monthly:,.2f}"],
@@ -476,14 +529,13 @@ def create_combined_pdf():
     story.append(t_cost)
     story.append(Spacer(1, 12))
 
-    # Scenario Inputs
     story.append(Paragraph("SCENARIO INPUTS", section_style))
     inp = [
         ["DEVICE COST", f"${device_cost:,.0f}", "SETUP / TAX", f"${setup_cost:,.0f}"],
         ["TOTAL INVESTMENT", f"${total_investment:,.0f}", "PURCHASE TYPE", purchase_type.upper()],
         ["INTEREST RATE", f"{interest_rate}%", "TERM", f"{term_months} MONTHS"],
         ["PATIENT VOLUME", f"{volume}", "CAPTURE RATE", f"{capture}%"],
-        ["PRICE / PATIENT", f"${price}", "", ""],
+        ["PRICE / PATIENT", f"${price}", "EST. SEC 179 SAVINGS", f"${section_179_savings:,.0f}"],
     ]
     t2 = Table(inp, colWidths=[1.7*inch, 1.5*inch, 1.7*inch, 1.5*inch])
     t2.setStyle(TableStyle([
@@ -502,7 +554,7 @@ def create_combined_pdf():
     story.append(Spacer(1, 14))
     story.append(Paragraph(
         "DISCLAIMER: These figures are estimates only and do not constitute financial, legal, or clinical advice. "
-        "Actual results will vary.  ·  CONFIDENTIAL – FOR INTERNAL DISCUSSION ONLY  ·  AI-CENTER",
+        "Section 179 estimates are illustrative only and do not constitute tax advice. Actual results will vary.  ·  CONFIDENTIAL – FOR INTERNAL DISCUSSION ONLY  ·  AI-CENTER",
         footer_style
     ))
 
@@ -519,16 +571,18 @@ def create_combined_pdf():
         capt = vol * (cap / 100)
         gr = capt * pr
         nt = gr - monthly_cost
-        if nt > 0:
-            pb = total_investment / nt
-            y1 = nt * max(0, 12 - pb) if pb < 12 else 0
+        if purchase_type == "Cash":
+            y1 = (nt * 12) - total_investment
             y2 = nt * 12
             over = (nt * term_months) - total_investment
         else:
-            pb, y1, y2, over = 999, 0, 0, -total_investment
+            y1 = nt * 12
+            y2 = nt * 12
+            over = nt * term_months
+        pb = total_investment / nt if nt > 0 else 999
         return [
             str(vol), f"{capt:.0f}", f"${gr:,.0f}", f"${nt:,.0f}",
-            f"{pb:.1f}", f"${y1:,.0f}" if y1 > 0 else "—", f"${y2:,.0f}", f"${over:,.0f}"
+            f"{pb:.1f}", f"${y1:,.0f}", f"${y2:,.0f}", f"${over:,.0f}"
         ]
 
     headers = ["Pts/mo", "Captured", "Gross", "Net/mo", "Payback", "Profit Y1", "Profit Y2", "Over Term"]
@@ -571,7 +625,7 @@ def create_combined_pdf():
     story.append(Spacer(1, 8))
     story.append(Paragraph(
         "DISCLAIMER: These figures are estimates only and do not constitute financial, legal, or clinical advice. "
-        "Actual results will vary.  ·  CONFIDENTIAL – FOR INTERNAL DISCUSSION ONLY  ·  AI-CENTER",
+        "Section 179 estimates are illustrative only and do not constitute tax advice. Actual results will vary.  ·  CONFIDENTIAL – FOR INTERNAL DISCUSSION ONLY  ·  AI-CENTER",
         footer_style
     ))
 
@@ -592,5 +646,6 @@ st.download_button(
 st.markdown("---")
 st.caption("""
 **Disclaimer:** These figures are estimates only and do not constitute financial, legal, or clinical advice. 
+Section 179 figures are estimates only and do not constitute tax advice.
 Actual results will vary based on practice volume, patient mix, capture rates, pricing, and operational factors.
 """)
