@@ -18,149 +18,28 @@ st.set_page_config(page_title="AI-Center ROI Calculator", page_icon="👁️", l
 st.markdown("""
 <style>
     .stApp { background-color: #0a0a0a; color: #ffffff; }
-
-    .big-number { 
-        font-size: 2.5rem; 
-        font-weight: 700; 
-        color: #d4af37; 
-        line-height: 1.1; 
-        margin: 0.1rem 0; 
-    }
-
-    .label { 
-        font-size: 0.72rem; 
-        color: #ffffff !important; 
-        text-transform: uppercase; 
-        letter-spacing: 0.06em; 
-        margin-bottom: 0.2rem;
-    }
-
-    .section-header {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: #d4af37;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin: 1.1rem 0 0.45rem 0;
-        padding-bottom: 0.25rem;
-        border-bottom: 1px solid #2a2a2a;
-    }
-
-    .sub-label {
-        font-size: 0.68rem;
-        font-weight: 600;
-        color: #888888;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin: 0.35rem 0 0.3rem 0;
-    }
-
-    .metric-card {
-        background: #141414; 
-        border: 1px solid #2a2a2a;
-        border-radius: 10px; 
-        padding: 0.8rem 0.65rem; 
-        text-align: center; 
-        height: 100%;
-    }
-
-    .metric-card-hero {
-        background: #141414; 
-        border: 1px solid #d4af37;
-        border-radius: 10px; 
-        padding: 1rem 0.75rem; 
-        text-align: center; 
-        height: 100%;
-    }
-
-    .metric-card-secondary {
-        background: #0f0f0f; 
-        border: 1px dashed #3a3a3a;
-        border-radius: 10px; 
-        padding: 0.7rem 0.65rem; 
-        text-align: center; 
-        height: 100%;
-    }
-
-    .metric-value {
-        font-size: 1.35rem;
-        font-weight: 600;
-        color: #ffffff;
-        margin-top: 0.1rem;
-    }
-
-    .metric-value-gold {
-        font-size: 1.35rem;
-        font-weight: 600;
-        color: #d4af37;
-        margin-top: 0.1rem;
-    }
-
-    .metric-value-muted {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #aaaaaa;
-        margin-top: 0.1rem;
-    }
-
-    .scenario-bar {
-        background: #141414;
-        border: 1px solid #2a2a2a;
-        border-radius: 8px;
-        padding: 0.55rem 1rem;
-        margin-bottom: 0.7rem;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.45rem;
-        align-items: center;
-    }
-
-    .pill {
-        background: #1f1a0f;
-        border: 1px solid #d4af37;
-        color: #d4af37;
-        font-size: 0.76rem;
-        font-weight: 600;
-        padding: 0.22rem 0.65rem;
-        border-radius: 20px;
-        letter-spacing: 0.03em;
-    }
-
-    .header-box {
-        background: linear-gradient(90deg, #111, #1a1a1a);
-        border: 1px solid #333; 
-        border-radius: 12px;
-        padding: 1rem 1.5rem; 
-        margin-bottom: 1rem;
-    }
-
+    .big-number { font-size: 2.5rem; font-weight: 700; color: #d4af37; line-height: 1.1; margin: 0.1rem 0; }
+    .label { font-size: 0.72rem; color: #ffffff !important; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.2rem; }
+    .section-header { font-size: 0.75rem; font-weight: 700; color: #d4af37; text-transform: uppercase; letter-spacing: 0.1em; margin: 1.1rem 0 0.45rem 0; padding-bottom: 0.25rem; border-bottom: 1px solid #2a2a2a; }
+    .sub-label { font-size: 0.68rem; font-weight: 600; color: #888888; text-transform: uppercase; letter-spacing: 0.08em; margin: 0.35rem 0 0.3rem 0; }
+    .metric-card { background: #141414; border: 1px solid #2a2a2a; border-radius: 10px; padding: 0.8rem 0.65rem; text-align: center; height: 100%; }
+    .metric-card-hero { background: #141414; border: 1px solid #d4af37; border-radius: 10px; padding: 1rem 0.75rem; text-align: center; height: 100%; }
+    .metric-card-secondary { background: #0f0f0f; border: 1px dashed #3a3a3a; border-radius: 10px; padding: 0.7rem 0.65rem; text-align: center; height: 100%; }
+    .metric-value { font-size: 1.35rem; font-weight: 600; color: #ffffff; margin-top: 0.1rem; }
+    .metric-value-gold { font-size: 1.35rem; font-weight: 600; color: #d4af37; margin-top: 0.1rem; }
+    .metric-value-muted { font-size: 1.25rem; font-weight: 600; color: #aaaaaa; margin-top: 0.1rem; }
+    .scenario-bar { background: #141414; border: 1px solid #2a2a2a; border-radius: 8px; padding: 0.55rem 1rem; margin-bottom: 0.7rem; display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
+    .pill { background: #1f1a0f; border: 1px solid #d4af37; color: #d4af37; font-size: 0.76rem; font-weight: 600; padding: 0.22rem 0.65rem; border-radius: 20px; letter-spacing: 0.03em; }
+    .header-box { background: linear-gradient(90deg, #111, #1a1a1a); border: 1px solid #333; border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 1rem; }
     h1, h2, h3, h4 { color: #ffffff !important; }
-
     [data-testid="stMetricLabel"] { color: #ffffff !important; }
     [data-testid="stMetricValue"] { color: #ffffff !important; }
-
     .stCaption, .stMarkdown p { color: #e5e5e5 !important; }
-
-    section[data-testid="stSidebar"] h1,
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3,
-    section[data-testid="stSidebar"] .stMarkdown p,
-    section[data-testid="stSidebar"] label,
-    section[data-testid="stSidebar"] .stRadio label {
-        color: #111111 !important;
-    }
-
-    .stDownloadButton > button {
-        background-color: #e5e5e5 !important;
-        color: #111111 !important;
-        font-weight: 600 !important;
-        border: none !important;
-        border-radius: 8px !important;
-    }
-    .stDownloadButton > button:hover {
-        background-color: #d4af37 !important;
-        color: #111111 !important;
-    }
+    section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] .stMarkdown p, section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] .stRadio label { color: #111111 !important; }
+    .stDownloadButton > button { background-color: #e5e5e5 !important; color: #111111 !important; font-weight: 600 !important; border: none !important; border-radius: 8px !important; }
+    .stDownloadButton > button:hover { background-color: #d4af37 !important; color: #111111 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -259,7 +138,6 @@ gross = captured * price
 net = gross - monthly_cost
 term_months = lease_months if purchase_type == "Financed" else 60
 
-# Year 1 / Year 2 logic
 if purchase_type == "Cash":
     profit_y1 = (net * 12) - total_investment
     profit_y2 = net * 12
@@ -274,13 +152,10 @@ if net > 0:
 else:
     payback = 999
 
-# Section 179
 section_179_savings = device_cost * (tax_rate / 100)
 profit_y1_with_179 = profit_y1 + section_179_savings
 
 # ---------- DISPLAY ----------
-
-# Scenario bar
 st.markdown(f"""
 <div class="scenario-bar">
     <span class="pill">{purchase_type}</span>
@@ -290,7 +165,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ===== RETURN =====
 st.markdown('<div class="section-header">Return</div>', unsafe_allow_html=True)
 
 r1, r2, r3 = st.columns([1.4, 1, 1])
@@ -334,7 +208,6 @@ with y2:
     </div>
     """, unsafe_allow_html=True)
 
-# Section 179 secondary view
 st.markdown("<div style='height:0.35rem'></div>", unsafe_allow_html=True)
 s1, s2 = st.columns(2)
 with s1:
@@ -354,9 +227,7 @@ with s2:
     </div>
     """, unsafe_allow_html=True)
 
-# ===== VOLUME & REVENUE =====
 st.markdown('<div class="section-header">Volume & Revenue</div>', unsafe_allow_html=True)
-
 v1, v2 = st.columns(2)
 with v1:
     st.markdown(f"""
@@ -373,9 +244,7 @@ with v2:
     </div>
     """, unsafe_allow_html=True)
 
-# ===== INVESTMENT & COST =====
 st.markdown('<div class="section-header">Investment & Cost</div>', unsafe_allow_html=True)
-
 st.markdown('<div class="sub-label">Upfront</div>', unsafe_allow_html=True)
 u1, u2 = st.columns(2)
 with u1:
@@ -445,8 +314,8 @@ def create_combined_pdf():
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer, pagesize=letter,
-        rightMargin=0.5*inch, leftMargin=0.5*inch,
-        topMargin=0.55*inch, bottomMargin=0.48*inch
+        rightMargin=0.45*inch, leftMargin=0.45*inch,
+        topMargin=0.5*inch, bottomMargin=0.45*inch
     )
 
     GOLD = colors.HexColor("#d4af37")
@@ -454,117 +323,140 @@ def create_combined_pdf():
     WHITE = colors.HexColor("#ffffff")
     DARK = colors.HexColor("#141414")
     BLACK = colors.HexColor("#0a0a0a")
+    MUTED = colors.HexColor("#888888")
 
-    title_style = ParagraphStyle('Title', fontName='Helvetica-Bold', fontSize=17, textColor=GOLD, spaceAfter=6, leading=20)
-    subtitle_style = ParagraphStyle('Sub', fontName='Helvetica-Bold', fontSize=8, textColor=WHITE, spaceAfter=10, spaceBefore=1)
-    section_style = ParagraphStyle('Sec', fontName='Helvetica-Bold', fontSize=10, textColor=GOLD, spaceBefore=9, spaceAfter=5)
-    label_style = ParagraphStyle('Lab', fontName='Helvetica-Bold', fontSize=9, textColor=WHITE, alignment=TA_CENTER, spaceAfter=4)
-    big_style = ParagraphStyle('Big', fontName='Helvetica-Bold', fontSize=24, textColor=GOLD, alignment=TA_CENTER, spaceBefore=6, spaceAfter=6, leading=28)
-    sub_label_style = ParagraphStyle('SubLab', fontName='Helvetica-Bold', fontSize=8, textColor=WHITE, alignment=TA_CENTER, spaceBefore=2, spaceAfter=9)
-    footer_style = ParagraphStyle('Foot', fontName='Helvetica-Bold', fontSize=7, textColor=WHITE, alignment=TA_CENTER, leading=9)
+    title_style = ParagraphStyle('Title', fontName='Helvetica-Bold', fontSize=16, textColor=GOLD, spaceAfter=4, leading=19)
+    subtitle_style = ParagraphStyle('Sub', fontName='Helvetica-Bold', fontSize=7.5, textColor=WHITE, spaceAfter=8, spaceBefore=1)
+    section_style = ParagraphStyle('Sec', fontName='Helvetica-Bold', fontSize=9, textColor=GOLD, spaceBefore=8, spaceAfter=4)
+    label_style = ParagraphStyle('Lab', fontName='Helvetica-Bold', fontSize=8, textColor=WHITE, alignment=TA_CENTER, spaceAfter=3)
+    big_style = ParagraphStyle('Big', fontName='Helvetica-Bold', fontSize=22, textColor=GOLD, alignment=TA_CENTER, spaceBefore=4, spaceAfter=4, leading=26)
+    sub_label_style = ParagraphStyle('SubLab', fontName='Helvetica-Bold', fontSize=7.5, textColor=WHITE, alignment=TA_CENTER, spaceBefore=1, spaceAfter=7)
+    footer_style = ParagraphStyle('Foot', fontName='Helvetica-Bold', fontSize=6.5, textColor=WHITE, alignment=TA_CENTER, leading=8)
+    small_muted = ParagraphStyle('SM', fontName='Helvetica', fontSize=6.5, textColor=MUTED, alignment=TA_CENTER)
 
     story = []
 
+    # ========== PAGE 1: SUMMARY ==========
     story.append(Paragraph("AI-CENTER  //  ROI SUMMARY", title_style))
     story.append(Paragraph(f"GENERATED {datetime.now().strftime('%Y.%m.%d  %H:%M').upper()}  ·  CONFIDENTIAL", subtitle_style))
-    
-    story.append(Spacer(1, 6))
+
+    story.append(Spacer(1, 4))
     story.append(Paragraph(f"PROFIT OVER {term_months}-MONTH TERM", label_style))
     story.append(Paragraph(f"${profit_term:,.0f}", big_style))
-    story.append(Paragraph(f"{purchase_type.upper()}  ·  {capture}% CAPTURE  ·  ${price}/PATIENT", sub_label_style))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=GOLD, spaceBefore=2, spaceAfter=10))
+    story.append(Paragraph(f"{purchase_type.upper()}  ·  {volume} PTS/MO  ·  {capture}% CAPTURE  ·  ${price}/PATIENT", sub_label_style))
+    story.append(HRFlowable(width="100%", thickness=1.2, color=GOLD, spaceBefore=1, spaceAfter=8))
 
-    data = [
+    # RETURN
+    story.append(Paragraph("RETURN", section_style))
+    ret_data = [
         ["NET PROFIT / MO", f"${net:,.0f}", "PAYBACK", f"{payback:.1f} MO"],
         ["PROFIT YEAR 1", f"${profit_y1:,.0f}", "PROFIT YEAR 2", f"${profit_y2:,.0f}"],
-        ["CAPTURED / MO", f"{captured:.0f}", "GROSS REVENUE / MO", f"${gross:,.0f}"],
+        ["EST. SEC 179 SAVINGS", f"${section_179_savings:,.0f}", "Y1 + EST. SEC 179", f"${profit_y1_with_179:,.0f}"],
     ]
-    t = Table(data, colWidths=[1.7*inch, 1.5*inch, 1.7*inch, 1.5*inch])
-    t.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), DARK),
-        ('TEXTCOLOR', (0, 0), (-1, -1), WHITE),
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 8.5),
-        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-        ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
-        ('TEXTCOLOR', (1, 0), (1, -1), GOLD),
-        ('TEXTCOLOR', (3, 0), (3, -1), GOLD),
-        ('GRID', (0, 0), (-1, -1), 0.7, GOLD),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ('LEFTPADDING', (0, 0), (-1, -1), 7),
-    ]))
-    story.append(t)
-    story.append(Spacer(1, 12))
-
-    story.append(Paragraph("MONTHLY COST BREAKDOWN", section_style))
-
-    finance_label = "Finance Payment" if purchase_type == "Financed" and payment > 0 else "Finance Payment"
-    finance_value = f"${payment:,.2f}" if payment > 0 else "$0.00 (Cash)"
-
-    cost_data = [
-        [finance_label, finance_value],
-        ["BioAge Subscription", f"${bioage:,.2f}"],
-        ["Maintenance", f"${maint:,.2f}"],
-        ["Other (staff / consumables)", f"${other_monthly:,.2f}"],
-        ["TOTAL MONTHLY COST", f"${monthly_cost:,.2f}"],
-    ]
-    t_cost = Table(cost_data, colWidths=[3.6*inch, 2.8*inch])
-    t_cost.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -2), DARK),
-        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#1f1a0f")),
-        ('TEXTCOLOR', (0, 0), (-1, -1), WHITE),
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 8.5),
-        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-        ('TEXTCOLOR', (1, 0), (1, -2), GOLD),
-        ('TEXTCOLOR', (1, -1), (1, -1), GOLD),
-        ('GRID', (0, 0), (-1, -1), 0.6, GOLD),
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-    ]))
-    story.append(t_cost)
-    story.append(Spacer(1, 12))
-
-    story.append(Paragraph("SCENARIO INPUTS", section_style))
-    inp = [
-        ["DEVICE COST", f"${device_cost:,.0f}", "SETUP / TAX", f"${setup_cost:,.0f}"],
-        ["TOTAL INVESTMENT", f"${total_investment:,.0f}", "PURCHASE TYPE", purchase_type.upper()],
-        ["INTEREST RATE", f"{interest_rate}%", "TERM", f"{term_months} MONTHS"],
-        ["PATIENT VOLUME", f"{volume}", "CAPTURE RATE", f"{capture}%"],
-        ["PRICE / PATIENT", f"${price}", "EST. SEC 179 SAVINGS", f"${section_179_savings:,.0f}"],
-    ]
-    t2 = Table(inp, colWidths=[1.7*inch, 1.5*inch, 1.7*inch, 1.5*inch])
-    t2.setStyle(TableStyle([
+    t_ret = Table(ret_data, colWidths=[1.7*inch, 1.45*inch, 1.7*inch, 1.45*inch])
+    t_ret.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), DARK),
         ('TEXTCOLOR', (0, 0), (-1, -1), WHITE),
         ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, -1), 8),
         ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
         ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
+        ('TEXTCOLOR', (1, 0), (1, -1), GOLD),
+        ('TEXTCOLOR', (3, 0), (3, -1), GOLD),
+        ('GRID', (0, 0), (-1, -1), 0.6, GOLD),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    story.append(t_ret)
+    story.append(Paragraph("Sec 179 figures are estimates only and do not constitute tax advice.", small_muted))
+    story.append(Spacer(1, 6))
+
+    # VOLUME & REVENUE
+    story.append(Paragraph("VOLUME & REVENUE", section_style))
+    vol_data = [
+        ["CAPTURED PATIENTS / MO", f"{captured:.0f}", "GROSS REVENUE / MO", f"${gross:,.0f}"],
+    ]
+    t_vol = Table(vol_data, colWidths=[1.7*inch, 1.45*inch, 1.7*inch, 1.45*inch])
+    t_vol.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), DARK),
+        ('TEXTCOLOR', (0, 0), (-1, -1), WHITE),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
+        ('TEXTCOLOR', (1, 0), (1, -1), GOLD),
+        ('TEXTCOLOR', (3, 0), (3, -1), GOLD),
+        ('GRID', (0, 0), (-1, -1), 0.6, GOLD),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    story.append(t_vol)
+    story.append(Spacer(1, 6))
+
+    # INVESTMENT & COST
+    story.append(Paragraph("INVESTMENT & COST", section_style))
+    story.append(Paragraph("UPFRONT", ParagraphStyle('Up', fontName='Helvetica-Bold', fontSize=7, textColor=MUTED, spaceBefore=2, spaceAfter=2)))
+    up_data = [
+        ["DEVICE COST", f"${device_cost:,.0f}", "TOTAL INVESTMENT", f"${total_investment:,.0f}"],
+    ]
+    t_up = Table(up_data, colWidths=[1.7*inch, 1.45*inch, 1.7*inch, 1.45*inch])
+    t_up.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), DARK),
+        ('TEXTCOLOR', (0, 0), (-1, -1), WHITE),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
+        ('TEXTCOLOR', (1, 0), (1, -1), GOLD),
+        ('TEXTCOLOR', (3, 0), (3, -1), GOLD),
         ('GRID', (0, 0), (-1, -1), 0.5, GOLD_DIM),
         ('TOPPADDING', (0, 0), (-1, -1), 4),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
         ('LEFTPADDING', (0, 0), (-1, -1), 6),
     ]))
-    story.append(t2)
-    story.append(Spacer(1, 14))
+    story.append(t_up)
+
+    story.append(Paragraph("RECURRING (MONTHLY)", ParagraphStyle('Rec', fontName='Helvetica-Bold', fontSize=7, textColor=MUTED, spaceBefore=4, spaceAfter=2)))
+    rec_data = [
+        ["FINANCE PAYMENT", f"${payment:,.2f}" if purchase_type == "Financed" else "$0.00 (Cash)", "BIOAGE SUBSCRIPTION", f"${bioage:,.2f}"],
+        ["MAINTENANCE", f"${maint:,.2f}", "OTHER", f"${other_monthly:,.2f}"],
+        ["TOTAL MONTHLY COST", f"${monthly_cost:,.2f}", "", ""],
+    ]
+    t_rec = Table(rec_data, colWidths=[1.7*inch, 1.45*inch, 1.7*inch, 1.45*inch])
+    t_rec.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), DARK),
+        ('TEXTCOLOR', (0, 0), (-1, -1), WHITE),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
+        ('TEXTCOLOR', (1, 0), (1, -1), GOLD),
+        ('TEXTCOLOR', (3, 0), (3, -1), GOLD),
+        ('GRID', (0, 0), (-1, -1), 0.5, GOLD_DIM),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('BACKGROUND', (0, -1), (1, -1), colors.HexColor("#1f1a0f")),
+    ]))
+    story.append(t_rec)
+    story.append(Spacer(1, 10))
+
     story.append(Paragraph(
         "DISCLAIMER: These figures are estimates only and do not constitute financial, legal, or clinical advice. "
         "Section 179 estimates are illustrative only and do not constitute tax advice. Actual results will vary.  ·  CONFIDENTIAL – FOR INTERNAL DISCUSSION ONLY  ·  AI-CENTER",
         footer_style
     ))
 
-    # PAGE 2 - PRO FORMA MATRIX
+    # ========== PAGE 2: PRO FORMA MATRIX ==========
     story.append(PageBreak())
     story.append(Paragraph("AI-CENTER  //  PRO FORMA MATRIX", title_style))
     story.append(Paragraph(
-        f"DEVICE ${device_cost:,.0f} + SETUP ${setup_cost:,.0f}  ·  {interest_rate}%  ·  {term_months} MO  ·  BIOAGE ${bioage} + MAINT ${maint}",
+        f"DEVICE ${device_cost:,.0f} + SETUP ${setup_cost:,.0f}  ·  {purchase_type.upper()}  ·  {interest_rate}%  ·  {term_months} MO  ·  BIOAGE ${bioage} + MAINT ${maint}  ·  SEC 179 @ {tax_rate:.0f}%",
         subtitle_style
     ))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=GOLD, spaceAfter=8))
+    story.append(HRFlowable(width="100%", thickness=1.2, color=GOLD, spaceAfter=6))
 
     def calc_row(vol, cap, pr):
         capt = vol * (cap / 100)
@@ -579,34 +471,35 @@ def create_combined_pdf():
             y2 = nt * 12
             over = nt * term_months
         pb = total_investment / nt if nt > 0 else 999
+        y1_179 = y1 + section_179_savings
         return [
             str(vol), f"{capt:.0f}", f"${gr:,.0f}", f"${nt:,.0f}",
-            f"{pb:.1f}", f"${y1:,.0f}", f"${y2:,.0f}", f"${over:,.0f}"
+            f"{pb:.1f}", f"${y1:,.0f}", f"${section_179_savings:,.0f}", f"${y1_179:,.0f}", f"${y2:,.0f}", f"${over:,.0f}"
         ]
 
-    headers = ["Pts/mo", "Captured", "Gross", "Net/mo", "Payback", "Profit Y1", "Profit Y2", "Over Term"]
+    headers = ["Pts/mo", "Captured", "Gross", "Net/mo", "Payback", "Profit Y1", "Sec 179", "Y1+179", "Profit Y2", "Over Term"]
 
     for price_point, label in [(49, "$49 / PATIENT"), (39, "$39 / PATIENT"), (29, "$29 / PATIENT")]:
         story.append(Paragraph(label, section_style))
         rows = [headers]
         for cap_rate, cap_name in [(35, "Very Conservative (35%)"), (65, "Standard (65%)"), (75, "Best Case (75%)")]:
-            rows.append([cap_name, "", "", "", "", "", "", ""])
+            rows.append([cap_name, "", "", "", "", "", "", "", "", ""])
             for vol in [200, 300, 400]:
                 rows.append(calc_row(vol, cap_rate, price_point))
 
-        col_w = [0.7*inch, 0.75*inch, 0.85*inch, 0.85*inch, 0.75*inch, 0.9*inch, 0.9*inch, 1.0*inch]
+        col_w = [0.55*inch, 0.6*inch, 0.7*inch, 0.7*inch, 0.6*inch, 0.7*inch, 0.65*inch, 0.7*inch, 0.7*inch, 0.75*inch]
         t = Table(rows, colWidths=col_w)
 
         style_cmds = [
             ('BACKGROUND', (0, 0), (-1, 0), GOLD),
             ('TEXTCOLOR', (0, 0), (-1, 0), BLACK),
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 7),
+            ('FONTSIZE', (0, 0), (-1, -1), 6.5),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('GRID', (0, 0), (-1, -1), 0.4, GOLD_DIM),
-            ('TOPPADDING', (0, 0), (-1, -1), 3),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+            ('GRID', (0, 0), (-1, -1), 0.35, GOLD_DIM),
+            ('TOPPADDING', (0, 0), (-1, -1), 2.5),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 2.5),
             ('BACKGROUND', (0, 1), (-1, -1), DARK),
             ('TEXTCOLOR', (0, 1), (-1, -1), WHITE),
         ]
@@ -619,12 +512,11 @@ def create_combined_pdf():
 
         t.setStyle(TableStyle(style_cmds))
         story.append(t)
-        story.append(Spacer(1, 6))
+        story.append(Spacer(1, 4))
 
-    story.append(Spacer(1, 8))
     story.append(Paragraph(
-        "DISCLAIMER: These figures are estimates only and do not constitute financial, legal, or clinical advice. "
-        "Section 179 estimates are illustrative only and do not constitute tax advice. Actual results will vary.  ·  CONFIDENTIAL – FOR INTERNAL DISCUSSION ONLY  ·  AI-CENTER",
+        "Sec 179 savings estimate is constant across rows (depends only on Device Cost × assumed tax rate).  ·  "
+        "DISCLAIMER: Figures are estimates only and do not constitute financial, legal, clinical, or tax advice.  ·  CONFIDENTIAL – AI-CENTER",
         footer_style
     ))
 
