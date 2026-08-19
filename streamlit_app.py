@@ -100,25 +100,31 @@ st.markdown("""
 # ---------- SIDEBAR ----------
 st.sidebar.markdown("### Scenario Presets")
 
+# Track last preset so we only update values when user changes the radio
+if "last_preset" not in st.session_state:
+    st.session_state.last_preset = "Base"
+
 preset = st.sidebar.radio(
     "Select Scenario",
     ["Conservative", "Base", "Aggressive"],
-    index=1,
+    index=["Conservative", "Base", "Aggressive"].index(st.session_state.last_preset),
     label_visibility="collapsed"
 )
 
-if preset == "Conservative":
-    st.session_state.volume = 200
-    st.session_state.capture = 35
-    st.session_state.price = 29
-elif preset == "Base":
-    st.session_state.volume = 300
-    st.session_state.capture = 65
-    st.session_state.price = 39
-elif preset == "Aggressive":
-    st.session_state.volume = 400
-    st.session_state.capture = 75
-    st.session_state.price = 49
+if preset != st.session_state.last_preset:
+    if preset == "Conservative":
+        st.session_state.volume = 200
+        st.session_state.capture = 35
+        st.session_state.price = 29
+    elif preset == "Base":
+        st.session_state.volume = 300
+        st.session_state.capture = 65
+        st.session_state.price = 39
+    elif preset == "Aggressive":
+        st.session_state.volume = 400
+        st.session_state.capture = 75
+        st.session_state.price = 49
+    st.session_state.last_preset = preset
 
 defaults = {
     "volume": 300, "capture": 65, "price": 39,
