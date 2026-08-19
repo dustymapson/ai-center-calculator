@@ -259,24 +259,22 @@ gross = captured * price
 net = gross - monthly_cost
 term_months = lease_months if purchase_type == "Financed" else 60
 
-# Corrected Year 1 / Year 2 logic
+# Year 1 / Year 2 logic
 if purchase_type == "Cash":
-    # Cash: subtract the full outlay in Year 1 only
     profit_y1 = (net * 12) - total_investment
     profit_y2 = net * 12
+    profit_term = (net * term_months) - total_investment
 else:
-    # Financed: monthly payment already in net — do NOT subtract total investment again
     profit_y1 = net * 12
     profit_y2 = net * 12
+    profit_term = net * term_months
 
 if net > 0:
     payback = total_investment / net
-    profit_term = (net * term_months) - total_investment if purchase_type == "Cash" else (net * term_months)
 else:
     payback = 999
-    profit_term = -total_investment if purchase_type == "Cash" else 0
 
-# Section 179 estimate (applies to both Cash and Financed — buyer owns the equipment)
+# Section 179
 section_179_savings = device_cost * (tax_rate / 100)
 profit_y1_with_179 = profit_y1 + section_179_savings
 
@@ -321,9 +319,10 @@ with r3:
 st.markdown("<div style='height:0.35rem'></div>", unsafe_allow_html=True)
 y1, y2 = st.columns(2)
 with y1:
+    cash_note = " · Cash Purchase" if purchase_type == "Cash" else ""
     st.markdown(f"""
     <div class="metric-card">
-        <div class="label">Profit – Year 1</div>
+        <div class="label">Profit – Year 1{cash_note}</div>
         <div class="metric-value">${profit_y1:,.0f}</div>
     </div>
     """, unsafe_allow_html=True)
@@ -343,7 +342,7 @@ with s1:
     <div class="metric-card-secondary">
         <div class="label">Est. Section 179 Tax Savings</div>
         <div class="metric-value-muted">${section_179_savings:,.0f}</div>
-        <div style="font-size:0.65rem; color:#777; margin-top:0.2rem;">Not included in Year 1 above</div>
+        <div style="font-size:0.65rem; color:#777; margin-top:0.2rem;">Tax benefit only · not additional cash</div>
     </div>
     """, unsafe_allow_html=True)
 with s2:
