@@ -24,23 +24,38 @@ st.markdown("""
         font-weight: 700; 
         color: #d4af37; 
         line-height: 1.1; 
-        margin: 0.2rem 0; 
+        margin: 0.15rem 0; 
     }
 
     .label { 
-        font-size: 0.8rem; 
+        font-size: 0.75rem; 
         color: #ffffff !important; 
         text-transform: uppercase; 
         letter-spacing: 0.06em; 
+        margin-bottom: 0.25rem;
     }
 
     .metric-card {
         background: #141414; 
         border: 1px solid #2a2a2a;
-        border-radius: 12px; 
-        padding: 1.1rem 0.8rem; 
+        border-radius: 10px; 
+        padding: 0.9rem 0.7rem; 
         text-align: center; 
         height: 100%;
+    }
+
+    .metric-value {
+        font-size: 1.45rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-top: 0.15rem;
+    }
+
+    .metric-value-gold {
+        font-size: 1.45rem;
+        font-weight: 600;
+        color: #d4af37;
+        margin-top: 0.15rem;
     }
 
     .header-box {
@@ -48,14 +63,13 @@ st.markdown("""
         border: 1px solid #333; 
         border-radius: 12px;
         padding: 1rem 1.5rem; 
-        margin-bottom: 1rem;
+        margin-bottom: 1.2rem;
     }
 
     h1, h2, h3, h4 { color: #ffffff !important; }
 
     [data-testid="stMetricLabel"] { color: #ffffff !important; }
     [data-testid="stMetricValue"] { color: #ffffff !important; }
-    [data-testid="stMetricDelta"] { color: #ffffff !important; }
 
     .stCaption, .stMarkdown p { color: #e5e5e5 !important; }
 
@@ -79,6 +93,11 @@ st.markdown("""
         background-color: #d4af37 !important;
         color: #111111 !important;
     }
+
+    /* Reduce excessive vertical gaps */
+    div[data-testid="stVerticalBlock"] > div {
+        gap: 0.6rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -100,7 +119,6 @@ st.markdown("""
 # ---------- SIDEBAR ----------
 st.sidebar.markdown("### Scenario Presets")
 
-# Track last preset so we only update values when user changes the radio
 if "last_preset" not in st.session_state:
     st.session_state.last_preset = "Base"
 
@@ -184,14 +202,16 @@ else:
     profit_y2 = 0
     profit_term = -total_investment
 
-# ---------- DISPLAY ----------
-left, right = st.columns([1.1, 1])
+# ---------- DISPLAY (Improved alignment) ----------
+# Top row: Big number + 2 key cards
+left, right = st.columns([1.15, 1])
+
 with left:
     st.markdown(f"""
-    <div style="text-align:center; padding: 1rem 0;">
+    <div style="text-align:center; padding: 0.8rem 0 0.4rem 0;">
         <div class="label">Estimated Profit over {term_months}-Month Term</div>
         <div class="big-number">${profit_term:,.0f}</div>
-        <div style="color:#ffffff; font-size:0.85rem; margin-top:0.3rem;">
+        <div style="color:#cccccc; font-size:0.82rem; margin-top:0.25rem;">
             {purchase_type} · {capture}% capture · ${price}/patient
         </div>
     </div>
@@ -200,21 +220,80 @@ with left:
 with right:
     m1, m2 = st.columns(2)
     with m1:
-        st.markdown(f'<div class="metric-card"><div class="label">Net Profit / Month</div><div style="font-size:1.7rem;font-weight:600;color:#d4af37">${net:,.0f}</div></div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="label">Net Profit / Month</div>
+            <div class="metric-value-gold">${net:,.0f}</div>
+        </div>
+        """, unsafe_allow_html=True)
     with m2:
-        st.markdown(f'<div class="metric-card"><div class="label">Payback Period</div><div style="font-size:1.7rem;font-weight:600;color:#ffffff">{payback:.1f} mo</div></div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="label">Payback Period</div>
+            <div class="metric-value">{payback:.1f} mo</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
+
+# Second row: 4 metrics
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("Captured Patients / mo", f"{captured:.0f}")
-c2.metric("Gross Revenue / mo", f"${gross:,.0f}")
-c3.metric("Monthly Lease Payment", f"${payment:,.2f}" if purchase_type == "Lease" else "—")
-c4.metric("Total Monthly Cost", f"${monthly_cost:,.2f}")
+with c1:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="label">Captured Patients / mo</div>
+        <div class="metric-value">{captured:.0f}</div>
+    </div>
+    """, unsafe_allow_html=True)
+with c2:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="label">Gross Revenue / mo</div>
+        <div class="metric-value">${gross:,.0f}</div>
+    </div>
+    """, unsafe_allow_html=True)
+with c3:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="label">Monthly Lease Payment</div>
+        <div class="metric-value">{"$" + f"{payment:,.2f}" if purchase_type == "Lease" else "—"}</div>
+    </div>
+    """, unsafe_allow_html=True)
+with c4:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="label">Total Monthly Cost</div>
+        <div class="metric-value">${monthly_cost:,.2f}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
+st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+
+# Third row: 3 metrics
 c5, c6, c7 = st.columns(3)
-c5.metric("Profit – Year 1", f"${profit_y1:,.0f}")
-c6.metric("Profit – Year 2", f"${profit_y2:,.0f}")
-c7.metric("Total Investment", f"${total_investment:,.0f}")
+with c5:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="label">Profit – Year 1</div>
+        <div class="metric-value">${profit_y1:,.0f}</div>
+    </div>
+    """, unsafe_allow_html=True)
+with c6:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="label">Profit – Year 2</div>
+        <div class="metric-value">${profit_y2:,.0f}</div>
+    </div>
+    """, unsafe_allow_html=True)
+with c7:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="label">Total Investment</div>
+        <div class="metric-value">${total_investment:,.0f}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<div style='height:0.8rem'></div>", unsafe_allow_html=True)
 
 with st.expander("Assumptions & Notes"):
     st.markdown("""
