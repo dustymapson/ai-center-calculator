@@ -348,7 +348,7 @@ with s1:
 with s2:
     st.markdown(f"""
     <div class="metric-card-secondary">
-        <div class="label">Year 1 + Est. Section 179</div>
+        <div class="label">Year 1 Profit + Estimated Section 179</div>
         <div class="metric-value-muted">${profit_y1_with_179:,.0f}</div>
         <div style="font-size:0.65rem; color:#777; margin-top:0.2rem;">Estimate only · not tax advice</div>
     </div>
