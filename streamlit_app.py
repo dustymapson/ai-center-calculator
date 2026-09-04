@@ -92,7 +92,7 @@ defaults = {
     "device_cost": 20000, "setup_cost": 6175,
     "interest_rate": 8.0, "lease_months": 60,
     "bioage": 399, "maint": 20, "other_monthly": 0,
-    "tax_rate": 25.0
+    "tax_rate": 8.0
 }
 for k, v in defaults.items():
     if k not in st.session_state:
