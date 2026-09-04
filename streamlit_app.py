@@ -88,7 +88,8 @@ if preset != st.session_state.last_preset:
 
 defaults = {
     "volume": 300, "capture": 65, "price": 39,
-    "device_cost": 22000, "setup_cost": 6175,
+    "device_type": "NW-500",
+    "device_cost": 20000, "setup_cost": 6175,
     "interest_rate": 8.0, "lease_months": 60,
     "bioage": 399, "maint": 20, "other_monthly": 0,
     "tax_rate": 25.0
@@ -96,6 +97,8 @@ defaults = {
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
+
+DEVICE_PRICES = {"NW-500": 20000, "Optos": 0}
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Revenue")
@@ -105,7 +108,29 @@ price = st.sidebar.slider("Price per Patient ($)", 15, 70, st.session_state.pric
 
 st.sidebar.markdown("### Device & Finance")
 purchase_type = st.sidebar.radio("Purchase Type", ["Cash", "Financed"], horizontal=True)
-device_cost = st.sidebar.number_input("Device Cost ($)", min_value=0, value=st.session_state.device_cost, step=500, key="device_cost")
+device_type = st.sidebar.radio(
+    "Device Type",
+    ["NW-500", "Optos"],
+    horizontal=True,
+    key="device_type",
+    help="NW-500 defaults to $20,000. Optos is $0 — they already have the camera.",
+)
+
+if st.session_state.get("_applied_device_type") != device_type:
+    st.session_state.device_cost = DEVICE_PRICES[device_type]
+    st.session_state._applied_device_type = device_type
+
+device_cost = st.sidebar.number_input(
+    "Device Cost ($)",
+    min_value=0,
+    step=500,
+    key="device_cost",
+    help="Set automatically by Device Type. You can change it after.",
+)
+if device_type == "Optos":
+    st.sidebar.caption("Optos: existing device, cost starts at $0.")
+else:
+    st.sidebar.caption("NW-500 starting price is $20,000. Edit if the quote is different.")
 setup_cost = st.sidebar.number_input("Setup / Install / Tax ($)", min_value=0, value=st.session_state.setup_cost, step=100, key="setup_cost")
 
 if purchase_type == "Financed":
@@ -158,12 +183,35 @@ profit_y1_with_179 = profit_y1 + section_179_savings
 # ---------- DISPLAY ----------
 st.markdown(f"""
 <div class="scenario-bar">
+    <span class="pill">{device_type}</span>
     <span class="pill">{purchase_type}</span>
     <span class="pill">{volume} pts/mo</span>
     <span class="pill">{capture}% capture</span>
     <span class="pill">${price}/patient</span>
 </div>
 """, unsafe_allow_html=True)
+
+st.markdown('<div class="section-header">Device & Software</div>', unsafe_allow_html=True)
+c1, c2 = st.columns(2)
+with c1:
+    device_note = "Existing Optos camera" if device_type == "Optos" else "NW-500 starting price"
+    st.markdown(f"""
+    <div class="metric-card-hero">
+        <div class="label">Device Cost</div>
+        <div class="big-number">${device_cost:,.0f}</div>
+        <div style="font-size:0.7rem; color:#cccccc; margin-top:0.25rem;">{device_note}</div>
+    </div>
+    """, unsafe_allow_html=True)
+with c2:
+    st.markdown(f"""
+    <div class="metric-card-hero">
+        <div class="label">Software Cost</div>
+        <div class="big-number">${bioage:,.0f}<span style="font-size:1rem; font-weight:500; color:#cccccc;"> / mo</span></div>
+        <div style="font-size:0.7rem; color:#cccccc; margin-top:0.25rem;">BioAge subscription</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
 
 st.markdown('<div class="section-header">Return</div>', unsafe_allow_html=True)
 
@@ -298,6 +346,10 @@ Estimated tax savings shown above use your assumed effective tax rate of **{tax_
 This is a **tax benefit estimate only**, separate from the cash-flow profit figures, and depends on the buyer’s specific tax situation. It does **not** constitute tax advice.
 
 **Setup / Install / Tax** is a residual placeholder. Edit it for each deal.
+
+**Device Type**  
+- **NW-500**: device cost starts at $20,000 (editable).  
+- **Optos**: existing camera, device cost starts at $0 (editable if there is still a charge).
     """)
 
 # ==================== PDF ====================
@@ -343,7 +395,7 @@ def create_combined_pdf():
     story.append(Spacer(1, 4))
     story.append(Paragraph(f"PROFIT OVER {term_months}-MONTH TERM", label_style))
     story.append(Paragraph(f"${profit_term:,.0f}", big_style))
-    story.append(Paragraph(f"{purchase_type.upper()}  ·  {volume} PTS/MO  ·  {capture}% CAPTURE  ·  ${price}/PATIENT", sub_label_style))
+    story.append(Paragraph(f"{device_type.upper()}  ·  {purchase_type.upper()}  ·  {volume} PTS/MO  ·  {capture}% CAPTURE  ·  ${price}/PATIENT", sub_label_style))
     story.append(HRFlowable(width="100%", thickness=1.2, color=GOLD, spaceBefore=1, spaceAfter=8))
 
     # RETURN
@@ -453,7 +505,7 @@ def create_combined_pdf():
     story.append(PageBreak())
     story.append(Paragraph("AI-CENTER  //  PRO FORMA MATRIX", title_style))
     story.append(Paragraph(
-        f"DEVICE ${device_cost:,.0f} + SETUP ${setup_cost:,.0f}  ·  {purchase_type.upper()}  ·  {interest_rate}%  ·  {term_months} MO  ·  BIOAGE ${bioage} + MAINT ${maint}  ·  SEC 179 @ {tax_rate:.0f}%",
+        f"{device_type.upper()}  ·  DEVICE ${device_cost:,.0f} + SETUP ${setup_cost:,.0f}  ·  {purchase_type.upper()}  ·  {interest_rate}%  ·  {term_months} MO  ·  SOFTWARE ${bioage} + MAINT ${maint}  ·  SEC 179 @ {tax_rate:.0f}%",
         subtitle_style
     ))
     story.append(HRFlowable(width="100%", thickness=1.2, color=GOLD, spaceAfter=6))
