@@ -108,23 +108,31 @@ capture = st.sidebar.slider("Capture Rate (%)", 10, 95, st.session_state.capture
 price = st.sidebar.slider("Price per Patient ($)", 15, 70, st.session_state.price, 1, key="price")
 
 st.sidebar.markdown("### Device & Finance")
-purchase_type = st.sidebar.radio(
-    "Purchase Type",
-    ["Cash", "Financed"],
-    horizontal=True,
-    key="purchase_type",
-)
 device_type = st.sidebar.radio(
     "Device Type",
     ["NW-500", "Optos"],
     horizontal=True,
     key="device_type",
-    help="NW-500 defaults to $20,000. Optos is $0 — they already have the camera.",
+    help="NW-500 is a new camera (can finance). Optos means they already own the device — software only.",
 )
 
 if st.session_state.get("_applied_device_type") != device_type:
     st.session_state.device_cost = DEVICE_PRICES[device_type]
+    st.session_state.setup_cost = 0 if device_type == "Optos" else 6175
     st.session_state._applied_device_type = device_type
+
+optos = device_type == "Optos"
+
+if not optos:
+    purchase_type = st.sidebar.radio(
+        "Purchase Type",
+        ["Cash", "Financed"],
+        horizontal=True,
+        key="purchase_type",
+    )
+else:
+    purchase_type = "Cash"
+    st.sidebar.caption("Optos: they already own the camera. No device financing.")
 
 device_cost = st.sidebar.number_input(
     "Device Cost ($)",
@@ -133,24 +141,43 @@ device_cost = st.sidebar.number_input(
     key="device_cost",
     help="Set automatically by Device Type. You can change it after.",
 )
-if device_type == "Optos":
-    st.sidebar.caption("Optos: existing device, cost starts at $0.")
+if optos:
+    st.sidebar.caption("Existing Optos device — cost is $0.")
 else:
     st.sidebar.caption("NW-500 starting price is $20,000. Edit if the quote is different.")
-setup_cost = st.sidebar.number_input("Setup / Install / Tax ($)", min_value=0, value=st.session_state.setup_cost, step=100, key="setup_cost")
 
-interest_rate = st.sidebar.slider("Annual Interest Rate (%)", 0.0, 15.0, st.session_state.interest_rate, 0.25, key="interest_rate")
-lease_months = st.sidebar.slider("Finance Term (months)", 12, 84, st.session_state.lease_months, 6, key="lease_months")
-if device_type == "NW-500":
+if not optos:
+    setup_cost = st.sidebar.number_input(
+        "Setup / Install / Tax ($)",
+        min_value=0,
+        value=st.session_state.setup_cost,
+        step=100,
+        key="setup_cost",
+    )
+    interest_rate = st.sidebar.slider(
+        "Annual Interest Rate (%)",
+        0.0, 15.0, st.session_state.interest_rate, 0.25, key="interest_rate",
+    )
+    lease_months = st.sidebar.slider(
+        "Finance Term (months)",
+        12, 84, st.session_state.lease_months, 6, key="lease_months",
+    )
     st.sidebar.caption("Used for the estimated monthly device payment (8% / 60 months to start).")
+else:
+    setup_cost = 0
+    interest_rate = float(st.session_state.interest_rate)
+    lease_months = int(st.session_state.lease_months)
 
 st.sidebar.markdown("### Recurring Monthly Costs")
 bioage = st.sidebar.number_input("BioAge Subscription ($)", min_value=0, value=st.session_state.bioage, step=10, key="bioage")
 maint = st.sidebar.number_input("Maintenance ($)", min_value=0, value=st.session_state.maint, step=5, key="maint")
 other_monthly = st.sidebar.number_input("Other (staff / consumables) ($)", min_value=0, value=st.session_state.other_monthly, step=10, key="other_monthly")
 
-st.sidebar.markdown("### Tax Estimate (Section 179)")
-tax_rate = st.sidebar.slider("Assumed Effective Tax Rate (%)", 0.0, 40.0, st.session_state.tax_rate, 1.0, key="tax_rate")
+if not optos:
+    st.sidebar.markdown("### Tax Estimate (Section 179)")
+    tax_rate = st.sidebar.slider("Assumed Effective Tax Rate (%)", 0.0, 40.0, st.session_state.tax_rate, 1.0, key="tax_rate")
+else:
+    tax_rate = 0.0
 
 # ---------- CALCULATIONS ----------
 def monthly_payment(principal: float, annual_rate: float, months: int) -> float:
@@ -161,40 +188,45 @@ def monthly_payment(principal: float, annual_rate: float, months: int) -> float:
     r = (annual_rate / 100) / 12
     return principal * (r * (1 + r) ** months) / ((1 + r) ** months - 1)
 
-total_investment = device_cost + setup_cost
-device_finance_est = monthly_payment(device_cost, interest_rate, lease_months)
-payment = monthly_payment(total_investment, interest_rate, lease_months) if purchase_type == "Financed" else 0.0
+total_investment = 0 if optos else device_cost + setup_cost
+device_finance_est = 0 if optos else monthly_payment(device_cost, interest_rate, lease_months)
+payment = 0 if optos or purchase_type != "Financed" else monthly_payment(total_investment, interest_rate, lease_months)
 
-monthly_cost = payment + bioage + maint + other_monthly
+monthly_cost = (bioage + maint + other_monthly) if optos else (payment + bioage + maint + other_monthly)
 software_monthly = bioage + maint
 nw500_monthly_est = device_finance_est + bioage + maint
 captured = volume * (capture / 100)
 gross = captured * price
 net = gross - monthly_cost
-term_months = lease_months if purchase_type == "Financed" else 60
+term_months = 60 if optos else (lease_months if purchase_type == "Financed" else 60)
 
-if purchase_type == "Cash":
+if optos:
+    profit_y1 = net * 12
+    profit_y2 = net * 12
+    profit_term = net * term_months
+    payback = 0
+    payback_label = "Immediate"
+elif purchase_type == "Cash":
     profit_y1 = (net * 12) - total_investment
     profit_y2 = net * 12
     profit_term = (net * term_months) - total_investment
+    payback = total_investment / net if net > 0 else 999
+    payback_label = f"{payback:.1f} mo"
 else:
     profit_y1 = net * 12
     profit_y2 = net * 12
     profit_term = net * term_months
+    payback = total_investment / net if net > 0 else 999
+    payback_label = f"{payback:.1f} mo"
 
-if net > 0:
-    payback = total_investment / net
-else:
-    payback = 999
-
-section_179_savings = device_cost * (tax_rate / 100)
+section_179_savings = 0 if optos else device_cost * (tax_rate / 100)
 profit_y1_with_179 = profit_y1 + section_179_savings
 
 # ---------- DISPLAY ----------
 st.markdown(f"""
 <div class="scenario-bar">
     <span class="pill">{device_type}</span>
-    <span class="pill">{purchase_type}</span>
+    <span class="pill">{"Software only" if optos else purchase_type}</span>
     <span class="pill">{volume} pts/mo</span>
     <span class="pill">{capture}% capture</span>
     <span class="pill">${price}/patient</span>
@@ -261,14 +293,14 @@ with r3:
     st.markdown(f"""
     <div class="metric-card">
         <div class="label">Payback Period</div>
-        <div class="metric-value">{payback:.1f} mo</div>
+        <div class="metric-value">{payback_label}</div>
     </div>
     """, unsafe_allow_html=True)
 
 st.markdown("<div style='height:0.35rem'></div>", unsafe_allow_html=True)
 y1, y2 = st.columns(2)
 with y1:
-    cash_note = " · Cash Purchase" if purchase_type == "Cash" else ""
+    cash_note = " · Software only" if optos else (" · Cash Purchase" if purchase_type == "Cash" else "")
     st.markdown(f"""
     <div class="metric-card">
         <div class="label">Profit – Year 1{cash_note}</div>
@@ -290,7 +322,7 @@ with s1:
     <div class="metric-card-secondary">
         <div class="label">Est. Section 179 Tax Savings</div>
         <div class="metric-value-muted">${section_179_savings:,.0f}</div>
-        <div style="font-size:0.65rem; color:#777; margin-top:0.2rem;">Tax benefit only · not additional cash</div>
+        <div style="font-size:0.65rem; color:#777; margin-top:0.2rem;">{"No equipment purchase" if optos else "Tax benefit only · not additional cash"}</div>
     </div>
     """, unsafe_allow_html=True)
 with s2:
@@ -343,7 +375,7 @@ with m1:
     st.markdown(f"""
     <div class="metric-card">
         <div class="label">Monthly Finance Payment</div>
-        <div class="metric-value">{"$" + f"{payment:,.2f}" if purchase_type == "Financed" else "—"}</div>
+        <div class="metric-value">{"—" if optos or purchase_type != "Financed" else "$" + f"{payment:,.2f}"}</div>
     </div>
     """, unsafe_allow_html=True)
 with m2:
@@ -362,21 +394,23 @@ with st.expander("Assumptions & Notes"):
 - 35% = Very Conservative | 65% = Typical / Base | 75%+ = Strong trust + optimized workflow  
 
 **Net Profit** = Gross revenue − Finance payment − BioAge − Maintenance − Other monthly costs.  
+On **Optos**, there is no finance payment and no device investment — only software-related costs (BioAge + maintenance + other).
 
 **Profit – Year 1 logic**  
-- **Cash**: (Net × 12) − Total Investment (full outlay occurs in Year 1)  
-- **Financed**: Net × 12 (monthly payment already deducted; no second subtraction of device cost)
+- **NW-500 Cash**: (Net × 12) − Total Investment (full outlay occurs in Year 1)  
+- **NW-500 Financed**: Net × 12 (monthly payment already deducted; no second subtraction of device cost)  
+- **Optos**: Net × 12. They already own the camera, so payback is immediate.
 
 **Section 179**  
-Cash and Financed purchases may qualify for Section 179 depreciation, allowing the buyer to deduct the full equipment cost in the year it is placed in service (subject to IRS annual limits).  
+Applies to a new equipment purchase (NW-500). Optos has no Section 179 because there is no device purchase.  
 Estimated tax savings shown above use your assumed effective tax rate of **{tax_rate:.0f}%** × Device Cost.  
 This is a **tax benefit estimate only**, separate from the cash-flow profit figures, and depends on the buyer’s specific tax situation. It does **not** constitute tax advice.
 
-**Setup / Install / Tax** is a residual placeholder. Edit it for each deal.
+**Setup / Install / Tax** is a residual placeholder on NW-500 deals. It is $0 on Optos.
 
 **Device Type**  
-- **NW-500**: device cost starts at $20,000 (editable). Software cost = BioAge + maintenance. The extra card is finance payment + BioAge + maintenance.  
-- **Optos**: existing camera, device cost starts at $0. Software cost is still BioAge + maintenance. No device finance bundle.
+- **NW-500**: device cost starts at $20,000 (editable). Software cost = BioAge + maintenance. The extra card is estimated device finance + BioAge + maintenance.  
+- **Optos**: existing camera. Device $0, no financing, no setup. Software cost = BioAge + maintenance. Payback is immediate.
     """)
 
 # ==================== PDF ====================
@@ -422,13 +456,14 @@ def create_combined_pdf():
     story.append(Spacer(1, 4))
     story.append(Paragraph(f"PROFIT OVER {term_months}-MONTH TERM", label_style))
     story.append(Paragraph(f"${profit_term:,.0f}", big_style))
-    story.append(Paragraph(f"{device_type.upper()}  ·  {purchase_type.upper()}  ·  {volume} PTS/MO  ·  {capture}% CAPTURE  ·  ${price}/PATIENT", sub_label_style))
+    deal_label = "SOFTWARE ONLY" if optos else purchase_type.upper()
+    story.append(Paragraph(f"{device_type.upper()}  ·  {deal_label}  ·  {volume} PTS/MO  ·  {capture}% CAPTURE  ·  ${price}/PATIENT", sub_label_style))
     story.append(HRFlowable(width="100%", thickness=1.2, color=GOLD, spaceBefore=1, spaceAfter=8))
 
     # RETURN
     story.append(Paragraph("RETURN", section_style))
     ret_data = [
-        ["NET PROFIT / MO", f"${net:,.0f}", "PAYBACK", f"{payback:.1f} MO"],
+        ["NET PROFIT / MO", f"${net:,.0f}", "PAYBACK", payback_label.upper()],
         ["PROFIT YEAR 1", f"${profit_y1:,.0f}", "PROFIT YEAR 2", f"${profit_y2:,.0f}"],
         ["EST. SEC 179 SAVINGS", f"${section_179_savings:,.0f}", "Y1 + EST. SEC 179", f"${profit_y1_with_179:,.0f}"],
     ]
@@ -532,7 +567,8 @@ def create_combined_pdf():
     story.append(PageBreak())
     story.append(Paragraph("AI-CENTER  //  PRO FORMA MATRIX", title_style))
     story.append(Paragraph(
-        f"{device_type.upper()}  ·  DEVICE ${device_cost:,.0f} + SETUP ${setup_cost:,.0f}  ·  {purchase_type.upper()}  ·  {interest_rate}%  ·  {term_months} MO  ·  SOFTWARE ${bioage} + MAINT ${maint}  ·  SEC 179 @ {tax_rate:.0f}%",
+        f"{device_type.upper()}  ·  {'SOFTWARE ONLY — EXISTING DEVICE' if optos else f'DEVICE ${device_cost:,.0f} + SETUP ${setup_cost:,.0f}  ·  {purchase_type.upper()}  ·  {interest_rate}%  ·  {term_months} MO'}  ·  SOFTWARE ${bioage} + MAINT ${maint}"
+        + ("" if optos else f"  ·  SEC 179 @ {tax_rate:.0f}%"),
         subtitle_style
     ))
     story.append(HRFlowable(width="100%", thickness=1.2, color=GOLD, spaceAfter=6))
@@ -541,19 +577,27 @@ def create_combined_pdf():
         capt = vol * (cap / 100)
         gr = capt * pr
         nt = gr - monthly_cost
-        if purchase_type == "Cash":
+        if optos or total_investment <= 0:
+            y1 = nt * 12
+            y2 = nt * 12
+            over = nt * term_months
+            pb_txt = "Imm"
+        elif purchase_type == "Cash":
             y1 = (nt * 12) - total_investment
             y2 = nt * 12
             over = (nt * term_months) - total_investment
+            pb = total_investment / nt if nt > 0 else 999
+            pb_txt = f"{pb:.1f}"
         else:
             y1 = nt * 12
             y2 = nt * 12
             over = nt * term_months
-        pb = total_investment / nt if nt > 0 else 999
+            pb = total_investment / nt if nt > 0 else 999
+            pb_txt = f"{pb:.1f}"
         y1_179 = y1 + section_179_savings
         return [
             str(vol), f"{capt:.0f}", f"${gr:,.0f}", f"${nt:,.0f}",
-            f"{pb:.1f}", f"${y1:,.0f}", f"${section_179_savings:,.0f}", f"${y1_179:,.0f}", f"${y2:,.0f}", f"${over:,.0f}"
+            pb_txt, f"${y1:,.0f}", f"${section_179_savings:,.0f}", f"${y1_179:,.0f}", f"${y2:,.0f}", f"${over:,.0f}"
         ]
 
     headers = ["Pts/mo", "Captured", "Gross", "Net/mo", "Payback", "Profit Y1", "Sec 179", "Y1+179", "Profit Y2", "Over Term"]
