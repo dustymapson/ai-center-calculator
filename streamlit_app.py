@@ -158,6 +158,8 @@ else:
     payment = 0
 
 monthly_cost = payment + bioage + maint + other_monthly
+software_monthly = bioage if device_type == "Optos" else bioage + maint
+nw500_monthly_est = payment + bioage + maint
 captured = volume * (capture / 100)
 gross = captured * price
 net = gross - monthly_cost
@@ -192,7 +194,10 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="section-header">Device & Software</div>', unsafe_allow_html=True)
-c1, c2 = st.columns(2)
+if device_type == "Optos":
+    c1, c2 = st.columns(2)
+else:
+    c1, c2, c3 = st.columns(3)
 with c1:
     device_note = "Existing Optos camera" if device_type == "Optos" else "NW-500 starting price"
     st.markdown(f"""
@@ -203,13 +208,30 @@ with c1:
     </div>
     """, unsafe_allow_html=True)
 with c2:
+    if device_type == "Optos":
+        software_note = "BioAge subscription"
+    else:
+        software_note = f"BioAge ${bioage:,.0f} + maintenance ${maint:,.0f}"
     st.markdown(f"""
     <div class="metric-card-hero">
         <div class="label">Software Cost</div>
-        <div class="big-number">${bioage:,.0f}<span style="font-size:1rem; font-weight:500; color:#cccccc;"> / mo</span></div>
-        <div style="font-size:0.7rem; color:#cccccc; margin-top:0.25rem;">BioAge subscription</div>
+        <div class="big-number">${software_monthly:,.0f}<span style="font-size:1rem; font-weight:500; color:#cccccc;"> / mo</span></div>
+        <div style="font-size:0.7rem; color:#cccccc; margin-top:0.25rem;">{software_note}</div>
     </div>
     """, unsafe_allow_html=True)
+if device_type == "NW-500":
+    with c3:
+        if purchase_type == "Financed":
+            bundle_note = f"Finance ${payment:,.0f} + BioAge ${bioage:,.0f} + maint ${maint:,.0f}"
+        else:
+            bundle_note = f"Cash purchase — finance $0 · BioAge ${bioage:,.0f} + maint ${maint:,.0f}"
+        st.markdown(f"""
+        <div class="metric-card-hero">
+            <div class="label">Est. Monthly (Device + Software)</div>
+            <div class="big-number">${nw500_monthly_est:,.0f}<span style="font-size:1rem; font-weight:500; color:#cccccc;"> / mo</span></div>
+            <div style="font-size:0.7rem; color:#cccccc; margin-top:0.25rem;">{bundle_note}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
 
@@ -348,8 +370,8 @@ This is a **tax benefit estimate only**, separate from the cash-flow profit figu
 **Setup / Install / Tax** is a residual placeholder. Edit it for each deal.
 
 **Device Type**  
-- **NW-500**: device cost starts at $20,000 (editable).  
-- **Optos**: existing camera, device cost starts at $0 (editable if there is still a charge).
+- **NW-500**: device cost starts at $20,000 (editable). Software cost = BioAge + maintenance. The extra card is finance payment + BioAge + maintenance.  
+- **Optos**: existing camera, device cost starts at $0. Software cost is BioAge only — no lease + BioAge bundle.
     """)
 
 # ==================== PDF ====================
