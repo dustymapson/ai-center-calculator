@@ -166,7 +166,7 @@ device_finance_est = monthly_payment(device_cost, interest_rate, lease_months)
 payment = monthly_payment(total_investment, interest_rate, lease_months) if purchase_type == "Financed" else 0.0
 
 monthly_cost = payment + bioage + maint + other_monthly
-software_monthly = bioage if device_type == "Optos" else bioage + maint
+software_monthly = bioage + maint
 nw500_monthly_est = device_finance_est + bioage + maint
 captured = volume * (capture / 100)
 gross = captured * price
@@ -216,10 +216,7 @@ with c1:
     </div>
     """, unsafe_allow_html=True)
 with c2:
-    if device_type == "Optos":
-        software_note = "BioAge subscription"
-    else:
-        software_note = f"BioAge ${bioage:,.0f} + maintenance ${maint:,.0f}"
+    software_note = f"BioAge ${bioage:,.0f} + maintenance ${maint:,.0f}"
     st.markdown(f"""
     <div class="metric-card-hero">
         <div class="label">Software Cost</div>
@@ -379,7 +376,7 @@ This is a **tax benefit estimate only**, separate from the cash-flow profit figu
 
 **Device Type**  
 - **NW-500**: device cost starts at $20,000 (editable). Software cost = BioAge + maintenance. The extra card is finance payment + BioAge + maintenance.  
-- **Optos**: existing camera, device cost starts at $0. Software cost is BioAge only — no lease + BioAge bundle.
+- **Optos**: existing camera, device cost starts at $0. Software cost is still BioAge + maintenance. No device finance bundle.
     """)
 
 # ==================== PDF ====================
