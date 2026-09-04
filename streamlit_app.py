@@ -89,6 +89,7 @@ if preset != st.session_state.last_preset:
 defaults = {
     "volume": 300, "capture": 65, "price": 39,
     "device_type": "NW-500",
+    "purchase_type": "Financed",
     "device_cost": 20000, "setup_cost": 6175,
     "interest_rate": 8.0, "lease_months": 60,
     "bioage": 399, "maint": 20, "other_monthly": 0,
@@ -107,7 +108,12 @@ capture = st.sidebar.slider("Capture Rate (%)", 10, 95, st.session_state.capture
 price = st.sidebar.slider("Price per Patient ($)", 15, 70, st.session_state.price, 1, key="price")
 
 st.sidebar.markdown("### Device & Finance")
-purchase_type = st.sidebar.radio("Purchase Type", ["Cash", "Financed"], horizontal=True)
+purchase_type = st.sidebar.radio(
+    "Purchase Type",
+    ["Cash", "Financed"],
+    horizontal=True,
+    key="purchase_type",
+)
 device_type = st.sidebar.radio(
     "Device Type",
     ["NW-500", "Optos"],
@@ -133,12 +139,10 @@ else:
     st.sidebar.caption("NW-500 starting price is $20,000. Edit if the quote is different.")
 setup_cost = st.sidebar.number_input("Setup / Install / Tax ($)", min_value=0, value=st.session_state.setup_cost, step=100, key="setup_cost")
 
-if purchase_type == "Financed":
-    interest_rate = st.sidebar.slider("Annual Interest Rate (%)", 0.0, 15.0, st.session_state.interest_rate, 0.25, key="interest_rate")
-    lease_months = st.sidebar.slider("Finance Term (months)", 12, 84, st.session_state.lease_months, 6, key="lease_months")
-else:
-    interest_rate = 0.0
-    lease_months = 60
+interest_rate = st.sidebar.slider("Annual Interest Rate (%)", 0.0, 15.0, st.session_state.interest_rate, 0.25, key="interest_rate")
+lease_months = st.sidebar.slider("Finance Term (months)", 12, 84, st.session_state.lease_months, 6, key="lease_months")
+if device_type == "NW-500":
+    st.sidebar.caption("Used for the estimated monthly device payment (8% / 60 months to start).")
 
 st.sidebar.markdown("### Recurring Monthly Costs")
 bioage = st.sidebar.number_input("BioAge Subscription ($)", min_value=0, value=st.session_state.bioage, step=10, key="bioage")
@@ -149,17 +153,21 @@ st.sidebar.markdown("### Tax Estimate (Section 179)")
 tax_rate = st.sidebar.slider("Assumed Effective Tax Rate (%)", 0.0, 40.0, st.session_state.tax_rate, 1.0, key="tax_rate")
 
 # ---------- CALCULATIONS ----------
-total_investment = device_cost + setup_cost
+def monthly_payment(principal: float, annual_rate: float, months: int) -> float:
+    if principal <= 0 or months <= 0:
+        return 0.0
+    if annual_rate <= 0:
+        return principal / months
+    r = (annual_rate / 100) / 12
+    return principal * (r * (1 + r) ** months) / ((1 + r) ** months - 1)
 
-if purchase_type == "Financed" and interest_rate > 0 and lease_months > 0:
-    r = (interest_rate / 100) / 12
-    payment = total_investment * (r * (1 + r)**lease_months) / ((1 + r)**lease_months - 1)
-else:
-    payment = 0
+total_investment = device_cost + setup_cost
+device_finance_est = monthly_payment(device_cost, interest_rate, lease_months)
+payment = monthly_payment(total_investment, interest_rate, lease_months) if purchase_type == "Financed" else 0.0
 
 monthly_cost = payment + bioage + maint + other_monthly
 software_monthly = bioage if device_type == "Optos" else bioage + maint
-nw500_monthly_est = payment + bioage + maint
+nw500_monthly_est = device_finance_est + bioage + maint
 captured = volume * (capture / 100)
 gross = captured * price
 net = gross - monthly_cost
@@ -222,9 +230,9 @@ with c2:
 if device_type == "NW-500":
     with c3:
         if purchase_type == "Financed":
-            bundle_note = f"Finance ${payment:,.0f} + BioAge ${bioage:,.0f} + maint ${maint:,.0f}"
+            bundle_note = f"Device finance ${device_finance_est:,.0f} + BioAge ${bioage:,.0f} + maint ${maint:,.0f}"
         else:
-            bundle_note = f"Cash purchase — finance $0 · BioAge ${bioage:,.0f} + maint ${maint:,.0f}"
+            bundle_note = f"If financed: device ${device_finance_est:,.0f} + BioAge ${bioage:,.0f} + maint ${maint:,.0f}"
         st.markdown(f"""
         <div class="metric-card-hero">
             <div class="label">Est. Monthly (Device + Software)</div>
