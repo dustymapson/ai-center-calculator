@@ -10,10 +10,10 @@ old_card = '''        if purchase_type == "Financed":
         else:
             bundle_note = f"If financed: device ${device_finance_est:,.0f} + BioAge ${bioage:,.0f} + maint ${maint:,.0f}"
         st.markdown(f"""
-        <div class=\"metric-card-hero\">
-            <div class=\"label\">Est. Monthly (Device + Software)</div>
-            <div class=\"big-number\">${nw500_monthly_est:,.0f}<span style=\"font-size:1rem; font-weight:500; color:#cccccc;\"> / mo</span></div>
-            <div style=\"font-size:0.7rem; color:#cccccc; margin-top:0.25rem;\">{bundle_note}</div>
+        <div class="metric-card-hero">
+            <div class="label">Est. Monthly (Device + Software)</div>
+            <div class="big-number">${nw500_monthly_est:,.0f}<span style="font-size:1rem; font-weight:500; color:#cccccc;"> / mo</span></div>
+            <div style="font-size:0.7rem; color:#cccccc; margin-top:0.25rem;">{bundle_note}</div>
         </div>
         """, unsafe_allow_html=True)'''
 
@@ -26,15 +26,15 @@ new_card = '''        if purchase_type == "Financed":
             bundle_value = software_monthly + other_monthly
             bundle_note = f"BioAge ${bioage:,.0f} + maint ${maint:,.0f} · device paid upfront"
         st.markdown(f"""
-        <div class=\"metric-card-hero\">
-            <div class=\"label\">{bundle_label}</div>
-            <div class=\"big-number\">${bundle_value:,.0f}<span style=\"font-size:1rem; font-weight:500; color:#cccccc;\"> / mo</span></div>
-            <div style=\"font-size:0.7rem; color:#cccccc; margin-top:0.25rem;\">{bundle_note}</div>
+        <div class="metric-card-hero">
+            <div class="label">{bundle_label}</div>
+            <div class="big-number">${bundle_value:,.0f}<span style="font-size:1rem; font-weight:500; color:#cccccc;"> / mo</span></div>
+            <div style="font-size:0.7rem; color:#cccccc; margin-top:0.25rem;">{bundle_note}</div>
         </div>
         """, unsafe_allow_html=True)'''
 
-old_pay = '''        <div class=\"metric-value\">{"—" if optos or purchase_type != "Financed" else "$" + f"{payment:,.2f}"}</div>'''
-new_pay = '''        <div class=\"metric-value\">{"$0.00" if optos or purchase_type != "Financed" else "$" + f"{payment:,.2f}"}</div>'''
+old_pay = '''        <div class="metric-value">{"—" if optos or purchase_type != "Financed" else "$" + f"{payment:,.2f}"}</div>'''
+new_pay = '''        <div class="metric-value">{"$0.00" if optos or purchase_type != "Financed" else "$" + f"{payment:,.2f}"}</div>'''
 
 if old_card not in code:
     raise RuntimeError("hero-card patch target not found")
